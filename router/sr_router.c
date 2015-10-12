@@ -78,7 +78,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
 
-  print_hdr_ip(packet)
+  print_hdr_ip(packet);
 
 }/* end sr_ForwardPacket */
 
