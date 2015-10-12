@@ -86,18 +86,18 @@ void sr_handlepacket(struct sr_instance* sr,
   sr_ip_hdr_t *ehdr = (sr_ip_hdr_t *)(packet);
   
   if (ntohs(ehdr->ether_type) == ethertype_arp){
-    arp_handlepacket(packet)
+    arp_handlepacket(packet);
   } else {
-    ip_handlepacket(packet)
+    ip_handlepacket(packet);
   }
 
 
 }/* end sr_ForwardPacket */
 
 void arp_handlepacket(uint8_t * packet) {
-  printf("** Recieved ARP packet")
+  printf("** Recieved ARP packet");
 }
 
 void ip_handlepacket(uint8_t * packet) {
-  printf("** Recieved IP packet")
+  printf("** Recieved IP packet");
 }
