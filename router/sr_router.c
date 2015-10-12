@@ -91,7 +91,6 @@ void sr_handlepacket(struct sr_instance* sr,
     ip_handlepacket(packet);
   }
 
-
 }/* end sr_ForwardPacket */
 
 void arp_handlepacket(uint8_t * packet) {
