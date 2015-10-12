@@ -78,13 +78,26 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
 
-  /* Initialization */
-  print_hdr_ip(packet);
-  sr_ip_hdr_t *recieve_ip = (sr_ip_hdr_t *)(packet);
+  /* Ensure the packet is long enough */
+  if (len < sizeof(struct sr_ethernet_hdr))
+    return;
+
+  /* Handle Packet */
+  sr_ip_hdr_t *ehdr = (sr_ip_hdr_t *)(packet);
   
+  if (ntohs(ehdr->ether_type) == ethertype_arp){
+    arp_handlepacket(packet)
+  } else {
+    ip_handlepacket(packet)
+  }
+
 
 }/* end sr_ForwardPacket */
 
 void arp_handlepacket(uint8_t * packet) {
-  print_hdr_ip(packet);
+  printf("** Recieved ARP packet")
+}
+
+void ip_handlepacket(uint8_t * packet) {
+  printf("** Recieved IP packet")
 }
