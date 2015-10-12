@@ -79,11 +79,11 @@ void sr_handlepacket(struct sr_instance* sr,
   printf("*** -> Received packet of length %d \n",len);
 
   /* Ensure the packet is long enough */
-  if (len < sizeof(struct sr_ethernet_hdr_t))
+  if (len < sizeof(struct sr_ethernet_hdr))
     return;
 
   /* Handle Packet */
-  sr_ethernet_hdr_t *ehdr = (struct sr_ethernet_hdr_t *)packet;
+  sr_ethernet_hdr_t *ehdr = (struct sr_ethernet_hdr *)packet;
   
   if (ntohs(ehdr->ether_type) == ethertype_arp){
     arp_handlepacket(packet);
