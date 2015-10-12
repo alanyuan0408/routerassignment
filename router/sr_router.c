@@ -78,8 +78,12 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
 
-  print_hdr_ip(packet);
+  /* Initialization */
+  sr_ip_hdr_t *recieve_ip = (sr_ip_hdr_t *)(packet);
+  print_hdr_ip(recieve_ip)
 
 }/* end sr_ForwardPacket */
 
-
+void arp_handlepacket(uint8_t * packet) {
+  print_hdr_ip(packet)
+}
