@@ -83,7 +83,7 @@ void sr_handlepacket(struct sr_instance* sr,
     return;
 
   /* Handle Packet */
-  sr_ethernet_hdr *ehdr = (sr_ethernet_hdr *)(packet);
+  sr_ethernet_hdr *ehdr = (struct sr_ethernet_hdr *)packet;
   
   if (ntohs(ehdr->ether_type) == ethertype_arp){
     arp_handlepacket(packet);
