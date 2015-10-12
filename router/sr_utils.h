@@ -46,6 +46,6 @@ void print_hdr_arp(uint8_t *buf);
 void print_hdrs(uint8_t *buf, uint32_t length);
 
 /* process ARP functions */
-struct *arp_header(uint8_t *buf);
+struct sr_arp_hdr *arp_header(uint8_t *buf);
 
 #endif /* -- SR_UTILS_H -- */
