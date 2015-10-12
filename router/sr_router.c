@@ -96,7 +96,7 @@ void sr_handlepacket(struct sr_instance* sr,
 void arp_handlepacket(uint8_t * packet) {
   printf("** Recieved ARP packet");
   /* Initialization */
-  sr_arp_hdr_t *arp_hdr  = arp_header(packet);
+  sr_arp_hdr_t *arp_hdr = arp_header(packet);
   print_hdr_arp(arp_hdr)
 
 }

@@ -7,7 +7,7 @@
 /* ----------------------------------------------------
 * Utility Method to process ARP packets
 *----------------------------------------------------*/
-struct sr_arp_hdr *arp_header(uint_8_t *buf){
+struct sr_arp_hdr *arp_header(uint8_t *buf){
   return (struct sr_arp_hdr *) (buf + sizeof(struct sr_ethernet_hdr))
 }
 
