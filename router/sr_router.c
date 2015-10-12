@@ -97,7 +97,7 @@ void arp_handlepacket(uint8_t * packet) {
   printf("** Recieved ARP packet");
   /* Initialization */
   sr_arp_hdr_t *arp_hdr = arp_header(packet);
-  printf(ntohs(arp_hdr->ar_hrd))
+  fprintf(stderr, "\thardware type: %d\n", ntohs(arp_hdr->ar_hrd));
 
 }
 
