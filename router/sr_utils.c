@@ -4,6 +4,13 @@
 #include "sr_protocol.h"
 #include "sr_utils.h"
 
+/* ----------------------------------------------------
+* Utility Method to process ARP packets
+*----------------------------------------------------*/
+struct sr_arp_hdr *arp_header(uint_8_t *buf){
+  return (struct sr_arp_hdr *) (buf + sizeof(struct sr_ethernet_hdr))
+}
+
 
 uint16_t cksum (const void *_data, int len) {
   const uint8_t *data = _data;
