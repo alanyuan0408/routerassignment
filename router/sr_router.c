@@ -78,6 +78,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
 
+ 
   /* Ensure the packet is long enough */
   if (len < sizeof(struct sr_ethernet_hdr))
     return;
@@ -99,8 +100,24 @@ void arp_handlepacket(uint8_t * packet) {
   sr_arp_hdr_t *arp_hdr = arp_header(packet);
   fprintf(stderr, "\thardware type: %d\n", ntohs(arp_hdr->ar_hrd));
 
+  if (ntohs(arp_hdr->arp_opcode) == arp_op_request)
+    {
+      
+    }
+  if (ntohs(arp_hdr->arp_opcode) == arp_op_reply)
+    {
+      
+    }
+
+
 }
 
 void ip_handlepacket(uint8_t * packet) {
   printf("** Recieved IP packet");
-}
+  sr_ip_hdr_t *ip_hdr = ip_header(packet);
+  if (ntohs(ip_hdr->ip_dst) == mVirtualHostID)
+    {
+
+    }
+
+
