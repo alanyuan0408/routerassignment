@@ -117,9 +117,7 @@ void arp_handlepacket(uint8_t * packet) {
 void ip_handlepacket(uint8_t * packet) {
   printf("** Recieved IP packet");
   sr_ip_hdr_t *ip_hdr = ip_header(packet);
-  if (ntohs(ip_hdr->ip_dst) == mVirtualHostID)
-    {
 
-    }
+}
 
 
