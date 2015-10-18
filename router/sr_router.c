@@ -78,7 +78,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
   struct sr_if* iface = 0;
-  iface = sr_get_interface(sr, name);
+  iface = sr_get_interface(sr, interface);
   sr_print_if(iface)
  
   /* Ensure the packet is long enough */
@@ -116,7 +116,6 @@ void arp_handlepacket(uint8_t * packet) {
 
 void ip_handlepacket(uint8_t * packet) {
   printf("** Recieved IP packet");
-  sr_ip_hdr_t *ip_hdr = ip_header(packet);
 
 }
 
