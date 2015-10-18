@@ -46,7 +46,7 @@ void print_hdr_arp(uint8_t *buf);
 void print_hdrs(uint8_t *buf, uint32_t length);
 
 /* Define header functions */
-sr_arp_hdr *arp_header(uint8_t *buf);
-sr_arp_hdr *ip_header(uint8_t *buf);
+sr_arp_hdr_t *arp_header(uint8_t *buf);
+sr_arp_hdr_t *ip_header(uint8_t *buf);
 
 #endif /* -- SR_UTILS_H -- */
