@@ -102,16 +102,11 @@ void arp_handlepacket(uint8_t * packet) {
   sr_arp_hdr_t *arp_hdr = arp_header(packet);
   fprintf(stderr, "\thardware type: %d\n", ntohs(arp_hdr->ar_hrd));
 
-  if (ntohs(arp_hdr->arp_opcode) == arp_op_request)
-    {
+  if (ntohs(ar_op->arp_opcode) == arp_op_request){
       
-    }
-  if (ntohs(arp_hdr->arp_opcode) == arp_op_reply)
-    {
+  } else if (ntohs(ar_op->arp_opcode) == arp_op_reply) {
       
-    }
-
-
+  }
 }
 
 void ip_handlepacket(uint8_t * packet) {
