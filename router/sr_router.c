@@ -79,7 +79,7 @@ void sr_handlepacket(struct sr_instance* sr,
   printf("*** -> Received packet of length %d \n",len);
   struct sr_if* iface = 0;
   iface = sr_get_interface(sr, name);
-  
+  sr_print_if(iface)
  
   /* Ensure the packet is long enough */
   if (len < sizeof(struct sr_ethernet_hdr))
