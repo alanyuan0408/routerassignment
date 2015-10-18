@@ -12,7 +12,7 @@ struct sr_arp_hdr *arp_header(uint8_t *buf){
   return (struct sr_arp_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
 }
 
-struct sr_arp_hdr *ip_header(uint8_t *buf){
+struct sr_ip_hdr *ip_header(uint8_t *buf){
   return (struct sr_ip_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
 }
 
