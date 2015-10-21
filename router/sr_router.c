@@ -141,8 +141,8 @@ void arp_handlepacket(struct sr_instance* sr, uint8_t * packet, unsigned int len
       memcpy(sr_ether_pkt->ether_shost,arp_packet->ar_sha, ETHER_ADDR_LEN);
       sr_ether_pkt-> ether_type = ethertype_arp;
 
-      uint8_t *packet_rpy =  (uint8_t *)（htons(sr_ether_pkt)）;
-
+      uint8_t *packet_rpy =  (uint8_t *)sr_ether_pkt;
+     
       /* send the reply*/
       sr_send_packet(sr,packet_rpy,total_len,iface_name);
 
