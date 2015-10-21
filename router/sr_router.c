@@ -78,7 +78,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
   struct sr_if* iface = 0;
-  iface = sr_get_interface(sr, interface);
+  iface = sr_get_interface(sr,interface);
   sr_print_if(iface);
  
   /* Ensure the packet is long enough */
@@ -89,23 +89,66 @@ void sr_handlepacket(struct sr_instance* sr,
   sr_ethernet_hdr_t *ehdr = (struct sr_ethernet_hdr *)packet;
   
   if (ntohs(ehdr->ether_type) == ethertype_arp){
-    arp_handlepacket(packet);
+    arp_handlepacket(sr,packet,len,interface);
   } else {
     ip_handlepacket(packet);
   }
 
 }/* end sr_ForwardPacket */
 
-void arp_handlepacket(uint8_t * packet) {
+void arp_handlepacket(struct sr_instance* sr, uint8_t * packet, unsigned int len, char* interface) {
   printf("** Recieved ARP packet");
   /* Initialization */
   sr_arp_hdr_t *arp_hdr = arp_header(packet);
   fprintf(stderr, "\thardware type: %d\n", ntohs(arp_hdr->ar_hrd));
 
-  if (ntohs(arp_hdr->ar_op) == arp_op_request){
-      
-  } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
-      
+  if (ntohs(arp_hdr->ar_op) == arp_op_request)
+    {
+      printf("** ARP packet request to me");
+      if(sr_arp_req_not_for_us(sr,packet,len,interface))/*how to define that fuction??*/
+	{return;}
+      sr_arp_hdr_t *arp_packet =0;
+
+
+      struct sr_if* iface = 0;
+      iface = sr_get_interface(sr,interface);/*how to transfer the struct into char*/ 
+      char iface_name[sr_IFACE_NAMELEN];
+      memcpy(iface_name,iface->name,sr_IFACE_NAMELEN); 
+      unsigned char iface_addr[ETHER_ADDR_LEN];
+      memcpy(iface_addr,iface->addr,ETHER_ADDR_LEN); 
+  
+      /* build the arp reply packet and then send it */
+      arp_packet->ar_hrd= arp_hdr->ar_hrd;  /*same as received packet*/
+      arp_packet->ar_pro= arp_hdr->ar_pro;  /*same as received packet*/
+      arp_packet->ar_hln= arp_hdr->ar_hln;  /*same as received packet*/
+      arp_packet->ar_pln= arp_hdr->ar_pln;  /*same as received packet*/
+      arp_packet->ar_op = arp_op_reply;     /*ARP opcode--ARP reply */
+
+      memcpy(arp_packet->ar_sha, iface_addr, ETHER_ADDR_LEN); /* flip sender hardware address*/
+      arp_packet->ar_sip=arp_hdr->ar_tip;   /* flip sender IP address */
+      memcpy(arp_packet->ar_tha,arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
+      arp_packet->ar_tip=arp_hdr->ar_sip;   /* flip target IP address */
+
+ 
+      /* encap the arp reply into ethernet frame and then send it*/
+      sr_ethernet_hdr_t *sr_ether_pkt;
+      unsigned int len = sizeof(arp_packet);
+      unsigned int total_len = len + (sizeof(sr_ethernet_hdr_t));
+      sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(len + sizeof(sr_ethernet_hdr_t));
+      assert(sr_ether_pkt);  
+
+      memcpy(sr_ether_pkt->ether_dhost,arp_packet->ar_tha, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt->ether_shost,arp_packet->ar_sha, ETHER_ADDR_LEN);
+      sr_ether_pkt-> ether_type = ethertype_arp;
+
+      uint8_t *packet_rpy =  (uint8_t *)（htons(sr_ether_pkt)）;
+
+      /* send the reply*/
+      sr_send_packet(sr,packet_rpy,total_len,iface_name);
+
+	
+    } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
+    printf("** ARP packet reply to me");  
   }
 }
 

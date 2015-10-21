@@ -63,6 +63,7 @@ int sr_verify_routing_table(struct sr_instance* sr);
 int sr_send_packet(struct sr_instance* , uint8_t* , unsigned int , const char*);
 int sr_connect_to_server(struct sr_instance* ,unsigned short , char* );
 int sr_read_from_server(struct sr_instance* );
+int sr_arp_req_not_for_us(struct sr_instance*, uint8_t *, unsigned int, char*);
 
 /* -- sr_router.c -- */
 void sr_init(struct sr_instance* );
@@ -75,7 +76,7 @@ void sr_set_ether_addr(struct sr_instance* , const unsigned char* );
 void sr_print_if_list(struct sr_instance* );
 
 /* -- processpacket -- */
-void arp_handlepacket(uint8_t *);
+void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char*);
 void ip_handlepacket(uint8_t *);
 
 #endif /* SR_ROUTER_H */
