@@ -13,7 +13,8 @@
 
 #include <stdio.h>
 #include <assert.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 #include "sr_if.h"
 #include "sr_rt.h"
@@ -105,24 +106,32 @@ void arp_handlepacket(struct sr_instance* sr, uint8_t * packet, unsigned int len
   if (ntohs(arp_hdr->ar_op) == arp_op_request)
     {
       printf("** ARP packet request to me");
-      if(sr_arp_req_not_for_us(sr,packet,len,interface))/*how to define that fuction??*/
+	/*how to define that fuction??*/
+      if(sr_arp_req_not_for_us(sr,packet,len,interface))
 	{return;}
-      sr_arp_hdr_t *arp_packet =0;
 
+      /* build the arp reply packet  */
+      sr_arp_hdr_t *arp_packet;
+      unsigned int arplen =  sizeof(sr_arp_hdr_t);
+      arp_packet = (sr_arp_hdr_t *)malloc(arplen);
+      assert(arp_packet);  
 
-      struct sr_if* iface = 0;
-      iface = sr_get_interface(sr,interface);/*how to transfer the struct into char*/ 
-      char iface_name[sr_IFACE_NAMELEN];
-      memcpy(iface_name,iface->name,sr_IFACE_NAMELEN); 
-      unsigned char iface_addr[ETHER_ADDR_LEN];
-      memcpy(iface_addr,iface->addr,ETHER_ADDR_LEN); 
-  
-      /* build the arp reply packet and then send it */
+      /* set value of arp packet  */
       arp_packet->ar_hrd= arp_hdr->ar_hrd;  /*same as received packet*/
       arp_packet->ar_pro= arp_hdr->ar_pro;  /*same as received packet*/
       arp_packet->ar_hln= arp_hdr->ar_hln;  /*same as received packet*/
       arp_packet->ar_pln= arp_hdr->ar_pln;  /*same as received packet*/
       arp_packet->ar_op = arp_op_reply;     /*ARP opcode--ARP reply */
+
+
+      /*get hardware address of router*/
+      struct sr_if* iface;
+      iface = sr_get_interface(sr,interface);
+      char iface_name[sr_IFACE_NAMELEN];
+      memcpy(iface_name,iface->name,sr_IFACE_NAMELEN); 
+      unsigned char iface_addr[ETHER_ADDR_LEN];
+      memcpy(iface_addr,iface->addr,ETHER_ADDR_LEN); 
+
 
       memcpy(arp_packet->ar_sha, iface_addr, ETHER_ADDR_LEN); /* flip sender hardware address*/
       arp_packet->ar_sip=arp_hdr->ar_tip;   /* flip sender IP address */
@@ -141,20 +150,27 @@ void arp_handlepacket(struct sr_instance* sr, uint8_t * packet, unsigned int len
       memcpy(sr_ether_pkt->ether_shost,arp_packet->ar_sha, ETHER_ADDR_LEN);
       sr_ether_pkt-> ether_type = ethertype_arp;
 
-      uint8_t *packet_rpy =  (uint8_t *)sr_ether_pkt;
-     
+      uint8_t *packet_rpy = (uint8_t *)sr_ether_pkt;
+
       /* send the reply*/
       sr_send_packet(sr,packet_rpy,total_len,iface_name);
 
 	
+    
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
-    printf("** ARP packet reply to me");  
+
+    printf("** ARP packet reply to me");
+  
+
+  
   }
 }
 
 void ip_handlepacket(uint8_t * packet) {
   printf("** Recieved IP packet");
 
+  sr_ip_hdr_t * ip_hdr = ip_header(packet);
+    if (ntohs(ip_hdr->ar_op) == arp_op_request)
 }
 
 

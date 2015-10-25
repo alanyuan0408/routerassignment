@@ -45,7 +45,7 @@
 #include "vnscommand.h"
 
 static void sr_log_packet(struct sr_instance* , uint8_t* , int );
-static int  sr_arp_req_not_for_us(struct sr_instance* sr,
+int  sr_arp_req_not_for_us(struct sr_instance* sr,
                                   uint8_t * packet /* lent */,
                                   unsigned int len,
                                   char* interface  /* lent */);
