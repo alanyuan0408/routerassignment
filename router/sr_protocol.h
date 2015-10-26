@@ -116,7 +116,7 @@ struct sr_ip_hdr
     unsigned int ip_v:4;		/* version */
     unsigned int ip_hl:4;		/* header length */
 #else
-#error "Byte ordering ot specified " 
+#error "Byte ordering not specified " 
 #endif 
     uint8_t ip_tos;			/* type of service */
     uint16_t ip_len;			/* total length */
@@ -169,6 +169,9 @@ enum sr_arp_hrd_fmt {
   arp_hrd_ethernet = 0x0001,
 };
 
+enum sr_arp_pro_fmt {
+  arp_pro_ip = 0x0800,
+};
 
 struct sr_arp_hdr
 {

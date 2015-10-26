@@ -76,7 +76,7 @@ void sr_set_ether_addr(struct sr_instance* , const unsigned char* );
 void sr_print_if_list(struct sr_instance* );
 
 /* -- processpacket -- */
-void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char*);
-void ip_handlepacket(uint8_t *);
+void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 
 #endif /* SR_ROUTER_H */

@@ -16,8 +16,23 @@
   checking whether we should resend an request or destroy the arp request.
   See the comments in the header file for an idea of what it should look like.
 */
-void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
-    /* Fill this in */
+void sr_arpcache_sweepreqs(struct sr_instance *sr)
+{ 
+    struct sr_arpcache *cache;
+    struct sr_arpreq *req, *next;
+    
+    cache = &sr->cache;
+    req = cache->requests;
+    if (req != 0){
+        next = req->next;
+    }
+    while(req != 0) {   
+      sr_handle_arpreq(sr, req);
+      req = next;
+      if (req != 0){
+        next = req->next;
+      }
+    }
 }
 
 /* You should not need to touch the rest of this code. */
@@ -245,3 +260,22 @@ void *sr_arpcache_timeout(void *sr_ptr) {
     return NULL;
 }
 
+void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
+{
+    if (difftime(time(0), req->sent) > 1.0) {
+    
+      /* Host is not reachable */
+      if (req->times_sent >= 5) {
+
+        /* Send ICMP host unreachable*/
+
+        sr_arpreq_destroy(&sr->cache, req);
+      } else {
+
+          /* Send arp request */
+
+          req->sent = time(0);
+          req->times_sent++;
+        }
+    }
+}
