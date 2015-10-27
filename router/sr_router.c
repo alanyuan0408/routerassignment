@@ -109,7 +109,7 @@ void arp_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-    printf("** Recieved ARP packet");
+    printf("** Recieved ARP packet\n");
 
     /* Initialization */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
@@ -156,12 +156,9 @@ void arp_handlepacket(struct sr_instance *sr,
     }   
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
-      printf("** ARP packet request to me");   
+      printf("** ARP packet request to me \n");   
 
-    	/*how to define that fuction??
-      if(sr_arp_req_not_for_us(sr,packet,len,interface))
-        return;*/
-
+   
       /* build the arp reply packet  */
       sr_arp_hdr_t *arp_packet_reply;
       unsigned int arplen =  sizeof(sr_arp_hdr_t);
@@ -206,7 +203,7 @@ void arp_handlepacket(struct sr_instance *sr,
       sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
       free(packet_rpy);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
-        printf("** ARP packet reply to me");
+        printf("** ARP packet reply to me\n");
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
 }
@@ -221,7 +218,7 @@ void ip_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-    printf("** Recieved IP packet");
+    printf("** Recieved IP packet\n");
 
     /* Initialization */
     sr_ip_hdr_t * ip_hdr = ip_header(packet);
