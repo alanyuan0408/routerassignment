@@ -9,7 +9,7 @@
  * with the routing table, as well as the main entry method
  * for routing.
  *
- **********************************************************************/
+ ***********************************************************************/
 
 #include <stdio.h>
 #include <assert.h>
@@ -109,7 +109,11 @@ void arp_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-    printf("** Recieved ARP packet");
+<<<<<<< HEAD
+    printf("** Recieved ARP packet **\n");
+=======
+    printf("** Recieved ARP packet\n");
+>>>>>>> origin/master
 
     /* Initialization */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
@@ -156,12 +160,17 @@ void arp_handlepacket(struct sr_instance *sr,
     }   
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
-      printf("** ARP packet request to me");   
+<<<<<<< HEAD
+      printf("** ARP packet request to me **\n");   
 
     	/*how to define that fuction??
       if(sr_arp_req_not_for_us(sr,packet,len,interface))
         return;*/
+=======
+      printf("** ARP packet request to me \n");   
+>>>>>>> origin/master
 
+   
       /* build the arp reply packet  */
       sr_arp_hdr_t *arp_packet_reply;
       unsigned int arplen =  sizeof(sr_arp_hdr_t);
@@ -174,15 +183,6 @@ void arp_handlepacket(struct sr_instance *sr,
       arp_packet_reply->ar_hln= arp_hdr->ar_hln;         /*same as received packet*/
       arp_packet_reply->ar_pln= arp_hdr->ar_pln;         /*same as received packet*/
       arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
-
-
-      /*get hardware address of router
-      char iface_name[sr_IFACE_NAMELEN];
-      memcpy(iface_name,r_iface->name,sr_IFACE_NAMELEN);  
-      unsigned char iface_addr[ETHER_ADDR_LEN];
-      memcpy(iface_addr,r_iface->addr,ETHER_ADDR_LEN);       no need */  
-
-
       memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
       arp_packet_reply->ar_sip=arp_hdr->ar_tip;   /* flip sender IP address */
       memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
@@ -206,7 +206,7 @@ void arp_handlepacket(struct sr_instance *sr,
       sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
       free(packet_rpy);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
-        printf("** ARP packet reply to me");
+        printf("** ARP packet reply to me\n");
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
 }
@@ -221,7 +221,7 @@ void ip_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-    printf("** Recieved IP packet");
+    printf("** Recieved IP packet\n");
 
     /* Initialization */
     sr_ip_hdr_t * ip_hdr = ip_header(packet);
@@ -255,7 +255,42 @@ void ip_handlepacket(struct sr_instance *sr,
         }
     } else {
        
-        /* Send IP packet */
+        struct sr_arpentry *arp_entry;
+        struct sr_if *s_interface;
+        
+        /* Find longest prefix match in routing table. */
+
+        struct sr_rt* ip_walker;
+        struct sr_rt* lpmatch = 0;
+        unsigned long lpmatch_len = 0;
+        struct in_addr dst_ip;
+        
+        dst_ip.s_addr = ip_hdr->ip_dst;  
+        ip_walker = sr->routing_table;
+        
+        /* If there is a longer match ahead replace it */
+        while(ip_walker != 0) {
+          if (((ip_walker->dest.s_addr & ip_walker->mask.s_addr) == (dst_ip.s_addr & ip_walker->mask.s_addr)) && 
+            (lpmatch_len <= ip_walker->mask.s_addr)) {          
+            lpmatch_len = ip_walker->mask.s_addr;
+            lpmatch = ip_walker;
+          }
+          ip_walker = ip_walker->next;
+        }
+    
+        /* If cannot find dst_ip in routing table, send ICMP host unreachable */
+        if (lpmatch == 0) {
+        
+        /* Send ICMP */
+
+        return;
+        }
+      
+        /* Get the corresponding interface of the destination IP. */
+        s_interface = sr_get_interface(sr, lpmatch->interface);
+      
+        /* Check ARP cache */
+        arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
 
       }
 }
