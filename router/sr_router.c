@@ -109,15 +109,7 @@ void arp_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    printf("** Recieved ARP packet **\n");
-=======
     printf("** Recieved ARP packet\n");
->>>>>>> origin/master
-=======
-    printf("** Recieved ARP packet\n");
->>>>>>> origin/master
 
     /* Initialization */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
@@ -164,19 +156,10 @@ void arp_handlepacket(struct sr_instance *sr,
     }   
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
-<<<<<<< HEAD
-<<<<<<< HEAD
-      printf("** ARP packet request to me **\n");   
-
     	/*how to define that fuction??
       if(sr_arp_req_not_for_us(sr,packet,len,interface))
         return;*/
-=======
       printf("** ARP packet request to me \n");   
->>>>>>> origin/master
-=======
-      printf("** ARP packet request to me \n");   
->>>>>>> origin/master
 
    
       /* build the arp reply packet  */
