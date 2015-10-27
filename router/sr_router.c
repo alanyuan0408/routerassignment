@@ -283,6 +283,51 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
 
+
+
+      /* *************IF miss APR cache, Send APR request packet************** */
+      sr_arp_hdr_t *arp_packet_request;
+      unsigned int arplen =  sizeof(sr_arp_hdr_t);
+      arp_packet_request = (sr_arp_hdr_t *)malloc(arplen);
+      assert(arp_packet_request);  
+
+      /* set value of arp packet  */
+      arp_packet_request->ar_hrd = htons(arp_hrd_ethernet);    
+      arp_packet_request->ar_pro = htons(arp_pro_ip);        
+      arp_packet_request->ar_hln = ETHER_ADDR_LEN;        
+      arp_packet_request->ar_pln = ARP_PLEN;       
+      arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
+      /*get hardware address of router*/  
+
+     
+      unsigned char   broadcast_MACadress[ETHER_ADDR_LEN]="ff-ff-ff-ff-ff-ff";   /* target hardware address      */
+
+      /*use s_interface as the struct member of sr_if that send the packet out*/
+
+      memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
+      arp_packet_request->ar_sip= s_interface->ip_src;   /* same as the sent IP or another? */
+      memcpy(arp_packet_request->ar_tha, broadcast_MACadress, ETHER_ADDR_LEN); /* target hardware address equals broadcast hardware address*/
+      arp_packet_request->ar_tip=ip_hdr->ip_dst;   /* flip target IP address */
+  
+      /* encap the arp request into ethernet frame and then send it    */
+      sr_ethernet_hdr_t *sr_ether_pkt;
+      unsigned int len = sizeof(arp_packet_request);
+      unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
+      sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
+      assert(sr_ether_pkt);  
+
+      memcpy(sr_ether_pkt->ether_dhost, arp_packet_request->ar_tha, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt->ether_shost, arp_packet_request->ar_sha, ETHER_ADDR_LEN);
+      sr_ether_pkt->ether_type = htons(ethertype_arp);
+
+      uint8_t *packet_rqt = (uint8_t*)sr_ether_pkt;
+
+      /* send the reply*/
+      sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
+      free(packet_rqt);
+
+      /* ********************IF hit the cache, Send IP packet (TTL-1; )************************** */
+
       }
 }
 

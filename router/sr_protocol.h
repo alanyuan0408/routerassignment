@@ -175,6 +175,10 @@ enum sr_arp_pro_fmt {
 
 struct sr_arp_hdr
 {
+    #ifndef ARP_PLEN
+    #define ARP_PLEN 4  
+    #endif
+
     unsigned short  ar_hrd;             /* format of hardware address   */
     unsigned short  ar_pro;             /* format of protocol address   */
     unsigned char   ar_hln;             /* length of hardware address   */
