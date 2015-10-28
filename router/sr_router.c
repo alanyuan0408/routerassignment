@@ -299,14 +299,11 @@ void ip_handlepacket(struct sr_instance *sr,
       arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
       /*get hardware address of router*/  
 
-     
-      unsigned char   broadcast_MACadress[ETHER_ADDR_LEN]="ff-ff-ff-ff-ff-ff";   /* target hardware address      */
 
       /*use s_interface as the struct member of sr_if that send the packet out*/
 
       memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
       arp_packet_request->ar_sip= s_interface->ip_src;   /* same as the sent IP or another? */
-      memcpy(arp_packet_request->ar_tha, broadcast_MACadress, ETHER_ADDR_LEN); /* target hardware address equals broadcast hardware address*/
       arp_packet_request->ar_tip=ip_hdr->ip_dst;   /* flip target IP address */
   
       /* encap the arp request into ethernet frame and then send it    */
