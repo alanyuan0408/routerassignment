@@ -177,9 +177,11 @@ void arp_handlepacket(struct sr_instance *sr,
       sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
       assert(sr_ether_pkt);  
 
-      memcpy(sr_ether_pkt->ether_dhost, 255, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt->ether_dhost, arp_packet_reply->ar_tha, ETHER_ADDR_LEN);
       memcpy(sr_ether_pkt->ether_shost, arp_packet_reply->ar_sha, ETHER_ADDR_LEN);
       sr_ether_pkt->ether_type = htons(ethertype_arp);
+
+      print_hdr_arp((uint8_t*)arp_packet_reply)
 
       uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
       print_hdr_eth(packet_rpy);
