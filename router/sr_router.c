@@ -23,6 +23,13 @@
 #include "sr_arpcache.h"
 #include "sr_utils.h"
 
+
+/*--------------------------------------------------------------------
+* Internal Function Prototypes
+*-------------------------------------------------------------------*/
+void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 
 /*---------------------------------------------------------------------
@@ -99,35 +106,17 @@ void arp_handlepacket(struct sr_instance *sr,
         unsigned int len,
         char *interface) 
 {
-    /* REQUIRES */
-    assert(sr);
-    assert(packet);
-    assert(interface);
-
     printf("** Recieved ARP packet\n");
 
-    /* Initialization */
+    /* Initalize ARP header and Input Interface */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
     struct sr_if* r_iface = sr_get_interface(sr,interface);
 
+    if (!arp_validpacket(packet, len))
+      return;
+
     struct sr_arpentry *arp_entry;
     struct sr_arpreq *arp_req;
-
-    /* Ensure the packet is long enough */
-    if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
-      return ;
-    }
-
-    /* Ensure the arp header setting is correct*/
-    if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
-      return ;
-    }
-    if (ntohs(arp_hdr->ar_pro) != arp_pro_ip){
-      return ;
-    }
-    if (r_iface->ip != arp_hdr->ar_tip){
-      return;
-    }
 
     /* Check ARP cache  */
     arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
@@ -186,6 +175,25 @@ void arp_handlepacket(struct sr_instance *sr,
         printf("** ARP packet reply to me\n");
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
+}
+
+void arp_validpacket(uint8_t *packet, unsigned int len){
+    /* Ensure the packet is long enough */
+    if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
+      return 0;
+    }
+    /* Ensure the arp header setting is correct*/
+    if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
+      return 0;
+    }
+    if (ntohs(arp_hdr->ar_pro) != arp_pro_ip){
+      return 0;
+    }
+    if (r_iface->ip != arp_hdr->ar_tip){
+      return 0;
+    }
+
+    return 1;
 }
 
 void ip_handlepacket(struct sr_instance *sr,
