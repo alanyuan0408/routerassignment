@@ -153,40 +153,34 @@ void arp_handlepacket(struct sr_instance *sr,
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
-      sr_arp_hdr_t *arp_packet_reply;
-      unsigned int arplen =  sizeof(sr_arp_hdr_t);
-      arp_packet_reply = (sr_arp_hdr_t *)malloc(arplen);
-      assert(arp_packet_reply);  
-
+      struct sr_arp_hdr arp_packet_reply;
       /* set value of arp packet  */
-      arp_packet_reply->ar_hrd= htons(arp_hrd_ethernet);         /*same as received packet*/
-      arp_packet_reply->ar_pro= htons(arp_pro_ip);         /*same as received packet*/
-      arp_packet_reply->ar_hln= ETHER_ADDR_LEN;         /*same as received packet*/
-      arp_packet_reply->ar_pln= sizeof(uint32_t);         /*same as received packet*/
-      arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
-      memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_reply->ar_sip= r_iface->ip;   /* flip sender IP address */
-      memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
-      arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
+      arp_packet_reply.ar_hrd= htons(arp_hrd_ethernet);         /*same as received packet*/
+      arp_packet_reply.ar_pro= htons(arp_pro_ip);         /*same as received packet*/
+      arp_packet_reply.ar_hln= ETHER_ADDR_LEN;         /*same as received packet*/
+      arp_packet_reply.ar_pln= sizeof(uint32_t);         /*same as received packet*/
+      arp_packet_reply.ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
+      arp_packet_reply.ar_sip= r_iface->ip;   /* flip sender IP address */
+      arp_packet_reply.ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
+      memcpy(arp_packet_reply.ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
+      memcpy(arp_packet_reply.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
+      
+      /* Build the Ethernet Packet */
+      struct sr_ethernet_hdr sr_ether_pkt;
+      memcpy(sr_ether_pkt.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+      sr_ether_pkt.ether_type = htons(ethertype_arp);
 
-      /* encap the arp reply into ethernet frame and then send it    ************   THIS PART NEED TO BE EXPRESSED AS A UNIVERSAL FUNCTION   */
-      sr_ethernet_hdr_t *sr_ether_pkt;
-      unsigned int len = sizeof(struct sr_arp_hdr);
-      unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
-      sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
-      assert(sr_ether_pkt);
-
-      memcpy(sr_ether_pkt->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
-      memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
-      sr_ether_pkt->ether_type = htons(ethertype_arp);
-
-      uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
-
-      printf("%d\n", len);
-      printf("%d\n", total_len);
+      /* Copy the Packet into the sender buf */
+      uint8_t *send_packet;
+      unsigned int eth_pkt_len;
+      eth_pkt_len = sizeof(arp_packet_reply) + sizeof(sr_ether_pkt)
+      send_packet = malloc(eth_pkt_len)
+      memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
+      memcpy(send_packet + sizeof(sr_ether_pkt), arp_packet_reply, sizeof(arp_packet_reply));
 
       /* send the reply*/
-      sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
+      sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
       free(packet_rpy);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
