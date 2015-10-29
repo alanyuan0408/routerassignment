@@ -354,6 +354,7 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     assert(sr);
 
     struct sr_if* if_walker = sr->if_list;
+    sr_print_if_list(sr);
     while(if_walker) {
       sr_print_if(if_walker);
       if(ip_dst == if_walker->ip){
