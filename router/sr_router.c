@@ -110,8 +110,8 @@ void arp_handlepacket(struct sr_instance *sr,
     printf("** Recieved ARP packet\n");
 
     /* Initalize ARP header and Input Interface */
-    sr_arp_hdr_t *arp_hdr = arp_header(packet);
-    struct sr_if* r_iface = sr_get_interface(sr,interface);
+    struct sr_arp_hdr *arp_hdr = arp_header(packet);
+    struct sr_if *r_iface = sr_get_interface(sr,interface);
 
     if (r_iface->ip != arp_hdr->ar_tip){
       return;
@@ -183,13 +183,13 @@ void arp_handlepacket(struct sr_instance *sr,
 }
 
 int arp_validpacket(uint8_t *packet, unsigned int len){
-
-    sr_arp_hdr_t *arp_hdr = arp_header(packet);
-
+  
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
       return 0;
     }
+
+    struct sr_arp_hdr *arp_hdr = arp_header(packet);
     /* Ensure the arp header setting is correct*/
     if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
       return 0;
@@ -198,7 +198,6 @@ int arp_validpacket(uint8_t *packet, unsigned int len){
       return 0;
     }
 
-    free(arp_hdr);
     return 1;
 }
 
