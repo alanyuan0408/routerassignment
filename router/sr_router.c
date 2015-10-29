@@ -32,6 +32,7 @@ void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 int arp_validpacket(uint8_t *packet, unsigned int len);
+int ip_validpacket(uint8_t *packet, unsigned int len);
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
 
 /*---------------------------------------------------------------------
@@ -218,32 +219,20 @@ void ip_handlepacket(struct sr_instance *sr,
         unsigned int len,
         char *interface) 
 { 
-    /* REQUIRES */
-    assert(sr);
-    assert(packet);
-    assert(interface);
 
     printf("** Recieved IP packet\n");
 
     /* Initialization */
     sr_ip_hdr_t * ip_hdr = ip_header(packet);
-    uint16_t c_cksum = 0, r_cksum = ip_hdr->ip_sum;
-    unsigned int hdr_len = ip_hdr->ip_hl * 4;
 
-    /* Ensure the packet is long enough */
-    if (len < sizeof(struct sr_ethernet_hdr) + hdr_len){
-      return ;
-    }
-    
-    /* Check cksum */
-    ip_hdr->ip_sum = 0;
-    c_cksum = cksum(ip_hdr, hdr_len);
-    if (c_cksum != r_cksum){
-      return ;
-    }
+    /* Validation */
+    if (!arp_validpacket(packet, len))
+      return;
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
+
+      printf("**Packet is for me\n")
     
       /* Check whether ICMP echo request or TCP/UDP */
       if (ntohs(ip_hdr->ip_p) == ip_protocol_icmp){
@@ -335,6 +324,29 @@ void ip_handlepacket(struct sr_instance *sr,
       /* ********************IF hit the cache, Send IP packet (TTL-1; )************************** */
 
       }
+}
+
+int ip_validpacket(uint8_t *packet, unsigned int len){
+
+    /* Initialization */
+    sr_ip_hdr_t * ip_hdr = ip_header(packet);
+    uint16_t c_cksum = 0
+    uint16_t r_cksum = ip_hdr->ip_sum;
+    unsigned int hdr_len = ip_hdr->ip_hl * 4;
+
+    /* Ensure the packet is long enough */
+    if (len < sizeof(struct sr_ethernet_hdr) + hdr_len){
+      return 0;
+    }
+    
+    /* Check cksum */
+    ip_hdr->ip_sum = 0;
+    c_cksum = cksum(ip_hdr, hdr_len);
+    if (c_cksum != r_cksum){
+      return 0;
+    }
+
+    return 1;
 }
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
