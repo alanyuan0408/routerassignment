@@ -159,10 +159,10 @@ void arp_handlepacket(struct sr_instance *sr,
       assert(arp_packet_reply);  
 
       /* set value of arp packet  */
-      arp_packet_reply->ar_hrd= arp_hdr->ar_hrd;         /*same as received packet*/
-      arp_packet_reply->ar_pro= arp_hdr->ar_pro;         /*same as received packet*/
-      arp_packet_reply->ar_hln= arp_hdr->ar_hln;         /*same as received packet*/
-      arp_packet_reply->ar_pln= arp_hdr->ar_pln;         /*same as received packet*/
+      arp_packet_reply->ar_hrd= htons(arp_hrd_ethernet);         /*same as received packet*/
+      arp_packet_reply->ar_pro= htons(arp_pro_ip);         /*same as received packet*/
+      arp_packet_reply->ar_hln= ETHER_ADDR_LEN;         /*same as received packet*/
+      arp_packet_reply->ar_pln= sizeof(uint32_t);         /*same as received packet*/
       arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
       memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
       arp_packet_reply->ar_sip= r_iface->ip;   /* flip sender IP address */
