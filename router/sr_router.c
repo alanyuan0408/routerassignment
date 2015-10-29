@@ -181,10 +181,10 @@ void arp_handlepacket(struct sr_instance *sr,
       memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
       sr_ether_pkt->ether_type = htons(ethertype_arp);
 
-      print_hdr_eth((uint8_t *)sr_ether_pkt);
-      print_hdr_arp((uint8_t *)arp_packet_reply);
-
       uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
+
+      printf("%d\n", len);
+      printf("%d\n", total_len);
 
       /* send the reply*/
       sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
@@ -309,7 +309,6 @@ void ip_handlepacket(struct sr_instance *sr,
       sr_ether_pkt->ether_type = htons(ethertype_arp);
 
       uint8_t *packet_rqt = (uint8_t*)sr_ether_pkt;
-      printf("%d\n", total_len);
 
       /* send the reply*/
       sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
