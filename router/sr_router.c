@@ -214,6 +214,8 @@ void ip_handlepacket(struct sr_instance *sr,
 
     printf("** Recieved IP packet\n");
 
+    print_hdr_ip(packet);
+
     /* Initialization */
     sr_ip_hdr_t * ip_hdr = ip_header(packet);
     uint16_t c_cksum = 0, r_cksum = ip_hdr->ip_sum;
