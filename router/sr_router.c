@@ -31,6 +31,7 @@ void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
+int arp_validpacket(uint8_t *packet, unsigned int len);
 
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
@@ -177,7 +178,7 @@ void arp_handlepacket(struct sr_instance *sr,
     }
 }
 
-void arp_validpacket(uint8_t *packet, unsigned int len){
+int arp_validpacket(uint8_t *packet, unsigned int len){
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
       return 0;
