@@ -174,8 +174,8 @@ void arp_handlepacket(struct sr_instance *sr,
       /* Copy the Packet into the sender buf */
       uint8_t *send_packet;
       unsigned int eth_pkt_len;
-      eth_pkt_len = sizeof(arp_packet_reply) + sizeof(sr_ether_pkt)
-      send_packet = malloc(eth_pkt_len)
+      eth_pkt_len = sizeof(arp_packet_reply) + sizeof(sr_ether_pkt);
+      send_packet = malloc(eth_pkt_len);
       memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
       memcpy(send_packet + sizeof(sr_ether_pkt), &arp_packet_reply, sizeof(arp_packet_reply));
 
