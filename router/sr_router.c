@@ -85,9 +85,6 @@ void sr_handlepacket(struct sr_instance *sr,
     if (len < sizeof(struct sr_ethernet_hdr)){
       return;
     }
-
-    /* Handle Packet */
-    print_hdr_eth(packet);
     
     if (ethertype(packet) == ethertype_arp){
       arp_handlepacket(sr, packet, len, interface);
@@ -167,7 +164,7 @@ void arp_handlepacket(struct sr_instance *sr,
       arp_packet_reply->ar_pln= arp_hdr->ar_pln;         /*same as received packet*/
       arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
       memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_reply->ar_sip= arp_hdr->ar_tip;   /* flip sender IP address */
+      arp_packet_reply->ar_sip= r_iface->ip;   /* flip sender IP address */
       memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
       arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
    
@@ -177,8 +174,6 @@ void arp_handlepacket(struct sr_instance *sr,
       unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
       sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
       assert(sr_ether_pkt);  
-
-      print_hdr_arp((uint8_t*)arp_hdr);
 
       memcpy(sr_ether_pkt->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
       memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
