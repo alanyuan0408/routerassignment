@@ -297,8 +297,8 @@ void ip_handlepacket(struct sr_instance *sr,
       /*use s_interface as the struct member of sr_if that send the packet out*/
 
       memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_request->ar_sip= s_interface->ip_src;   /* same as the sent IP or another? */f
-      arp_packet_request->ar_tip=ip_hdr->ip_dst;   /* flip target IP address */
+      arp_packet_request->ar_sip= ip_hdr->ip_src;   /* same as the sent IP or another? */f
+      arp_packet_request->ar_tip= ip_hdr->ip_dst;   /* flip target IP address */
   
       /* encap the arp request into ethernet frame and then send it    */
       sr_ethernet_hdr_t *sr_ether_pkt;
