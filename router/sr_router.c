@@ -232,7 +232,7 @@ void ip_handlepacket(struct sr_instance *sr,
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
 
-      printf("**Packet is for me\n")
+      printf("**Packet is for me\n");
     
       /* Check whether ICMP echo request or TCP/UDP */
       if (ntohs(ip_hdr->ip_p) == ip_protocol_icmp){
