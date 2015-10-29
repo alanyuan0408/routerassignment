@@ -182,7 +182,7 @@ void arp_handlepacket(struct sr_instance *sr,
       sr_ether_pkt->ether_type = htons(ethertype_arp);
 
       uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
-      print_hdr_eth(sr_ether_pkt);
+      print_hdr_eth(packet_rpy);
 
       /* send the reply*/
       sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
