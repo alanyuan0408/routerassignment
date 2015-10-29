@@ -109,7 +109,7 @@ void arp_handlepacket(struct sr_instance *sr,
     /* Initialization */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
     struct sr_if* r_iface = sr_get_interface(sr,interface);
-    sr_print_if(r_iface)
+    sr_print_if(r_iface);
 
     struct sr_arpentry *arp_entry;
     struct sr_arpreq *arp_req;
