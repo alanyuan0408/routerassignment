@@ -219,7 +219,6 @@ void ip_handlepacket(struct sr_instance *sr,
         unsigned int len,
         char *interface) 
 { 
-
     printf("** Recieved IP packet\n");
     print_hdrs(packet, len);
 
@@ -232,7 +231,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
-
       printf("**Packet is for me\n");
     
       /* Check whether ICMP echo request or TCP/UDP */
@@ -357,6 +355,7 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
 
     struct sr_if* if_walker = sr->if_list;
     while(if_walker) {
+      sr_print_if(if_walker);
       if(ip_dst == if_walker->ip){
         return 1;
       }
