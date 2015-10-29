@@ -87,7 +87,6 @@ void sr_handlepacket(struct sr_instance *sr,
     }
 
     /* Handle Packet */
-
     print_hdr_eth(packet);
     
     if (ethertype(packet) == ethertype_arp){
@@ -178,6 +177,8 @@ void arp_handlepacket(struct sr_instance *sr,
       unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
       sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
       assert(sr_ether_pkt);  
+
+      print_hdr_arp((uint8_t*)arp_hdr);
 
       memcpy(sr_ether_pkt->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
       memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
