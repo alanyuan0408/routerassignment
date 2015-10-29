@@ -181,7 +181,7 @@ void arp_handlepacket(struct sr_instance *sr,
       memcpy(sr_ether_pkt->ether_shost, arp_packet_reply->ar_sha, ETHER_ADDR_LEN);
       sr_ether_pkt->ether_type = htons(ethertype_arp);
 
-      print_hdr_arp((uint8_t*)arp_packet_reply);
+      print_hdr_arp((uint8_t*)arp_hdr);
 
       uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
       print_hdr_eth(packet_rpy);
