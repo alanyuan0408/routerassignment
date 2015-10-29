@@ -130,24 +130,18 @@ void arp_handlepacket(struct sr_instance *sr,
       return;
     }
 
-
     /* Check ARP cache  */
     arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
     if (arp_entry != 0){
-      fprintf(stderr, "Entry is already in\n");
       free(arp_entry);
     }else {
-      fprintf(stderr, "Add ARP to arpcache\n");
       arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
-
       /* Check ARP request queue, if not empty send out packets on it*/
       if (arp_req != 0) {
         struct sr_packet *pkt_wait = arp_req->packets;
 
         while (pkt_wait != 0) {
-
           /*some universal function to encap and send out packet*/
-
           pkt_wait = pkt_wait->next;
         }
       } 
@@ -158,7 +152,6 @@ void arp_handlepacket(struct sr_instance *sr,
       if(sr_arp_req_not_for_us(sr,packet,len,interface))
         return;*/
       printf("** ARP packet request to me \n");   
-
    
       /* build the arp reply packet  */
       sr_arp_hdr_t *arp_packet_reply;
@@ -173,10 +166,12 @@ void arp_handlepacket(struct sr_instance *sr,
       arp_packet_reply->ar_pln= arp_hdr->ar_pln;         /*same as received packet*/
       arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
       memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_reply->ar_sip=arp_hdr->ar_tip;   /* flip sender IP address */
+      arp_packet_reply->ar_sip= arp_hdr->ar_tip;   /* flip sender IP address */
       memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
-      arp_packet_reply->ar_tip=arp_hdr->ar_sip;   /* flip target IP address */
+      arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
 
+      uint8_t *arp_packet_test = (uint8_t*)arp_packet_reply
+      print_hdr_arp(arp_packet_test)
    
       /* encap the arp reply into ethernet frame and then send it    ************   THIS PART NEED TO BE EXPRESSED AS A UNIVERSAL FUNCTION   */
       sr_ethernet_hdr_t *sr_ether_pkt;
