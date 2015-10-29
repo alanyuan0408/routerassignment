@@ -80,9 +80,6 @@ void sr_handlepacket(struct sr_instance *sr,
     assert(interface);
 
     printf("*** -> Received packet of length %d \n",len);
-    struct sr_if* r_iface = 0;
-    r_iface = sr_get_interface(sr,interface);
-    sr_print_if(r_iface);
    
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr)){
@@ -133,7 +130,6 @@ void arp_handlepacket(struct sr_instance *sr,
       return;
     }
 
-    fprintf(stderr, "\thardware type: %d\n", ntohs(arp_hdr->ar_hrd));
 
     /* Check ARP cache  */
     arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
@@ -213,8 +209,6 @@ void ip_handlepacket(struct sr_instance *sr,
     assert(interface);
 
     printf("** Recieved IP packet\n");
-
-    print_hdr_ip(packet);
 
     /* Initialization */
     sr_ip_hdr_t * ip_hdr = ip_header(packet);
@@ -300,13 +294,11 @@ void ip_handlepacket(struct sr_instance *sr,
       arp_packet_request->ar_pln = ARP_PLEN;       
       arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
       /*get hardware address of router*/  
-
-
       /*use s_interface as the struct member of sr_if that send the packet out*/
 
       memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_request->ar_sip= ip_hdr->ip_src;   /* same as the sent IP or another? */
-      arp_packet_request->ar_tip= ip_hdr->ip_dst;   /* flip target IP address */
+      arp_packet_request->ar_sip= s_interface->ip_src;   /* same as the sent IP or another? */f
+      arp_packet_request->ar_tip=ip_hdr->ip_dst;   /* flip target IP address */
   
       /* encap the arp request into ethernet frame and then send it    */
       sr_ethernet_hdr_t *sr_ether_pkt;
