@@ -114,7 +114,7 @@ void arp_handlepacket(struct sr_instance *sr,
     struct sr_if* r_iface = sr_get_interface(sr,interface);
 
     if (r_iface->ip != arp_hdr->ar_tip){
-      return 0;
+      return;
     }
 
     if (!arp_validpacket(packet, len))
