@@ -185,7 +185,7 @@ void arp_handlepacket(struct sr_instance *sr,
       print_hdr_eth(packet_rpy);
 
       /* send the reply*/
-      sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
+      sr_send_packet(sr, packet_rpy, total_len, rt-interface);
       free(packet_rpy);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
