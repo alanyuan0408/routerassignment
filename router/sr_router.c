@@ -154,10 +154,8 @@ void arp_handlepacket(struct sr_instance *sr,
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
-      sr_arp_hdr_t *arp_packet_reply;
-      unsigned int arplen =  sizeof(sr_arp_hdr_t);
-      arp_packet_reply = (sr_arp_hdr_t *)malloc(arplen);
-      assert(arp_packet_reply);  
+      struct sr_arp_hdr *arp_packet_reply;
+      assert(arp_packet_reply); 
 
       /* set value of arp packet  */
       arp_packet_reply->ar_hrd= arp_hdr->ar_hrd;         /*same as received packet*/
