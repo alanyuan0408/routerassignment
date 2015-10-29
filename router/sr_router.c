@@ -167,13 +167,16 @@ void arp_handlepacket(struct sr_instance *sr,
       arp_packet_reply->ar_sip= r_iface->ip;   /* flip sender IP address */
       memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
       arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
-   
+
       /* encap the arp reply into ethernet frame and then send it    ************   THIS PART NEED TO BE EXPRESSED AS A UNIVERSAL FUNCTION   */
       sr_ethernet_hdr_t *sr_ether_pkt;
       unsigned int len = sizeof(arp_packet_reply);
       unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
       sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
-      assert(sr_ether_pkt);  
+      assert(sr_ether_pkt);
+
+      print_hdr_eth((uint8_t *)sr_ether_pkt)
+      print_hdr_arp((uint8_t *)arp_packet_reply)
 
       memcpy(sr_ether_pkt->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
       memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
