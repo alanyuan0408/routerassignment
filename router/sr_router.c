@@ -180,7 +180,7 @@ void arp_handlepacket(struct sr_instance *sr,
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface){
 
       /* Initalize ARP header and Input Interface */
-      struct sr_arp_hdr *build_arp;
+      struct sr_arp_hdr build_arp;
 
       /* set value of arp packet  */
       build_arp.ar_hrd= htons(arp_hrd_ethernet);
