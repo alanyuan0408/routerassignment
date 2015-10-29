@@ -223,7 +223,7 @@ void ip_handlepacket(struct sr_instance *sr,
     printf("** Recieved IP packet\n");
 
     /* Initialization */
-    sr_ip_hdr_t * ip_hdr = ip_header(packet);
+    struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
     /* Validation */
     if (!arp_validpacket(packet, len))
@@ -329,8 +329,8 @@ void ip_handlepacket(struct sr_instance *sr,
 int ip_validpacket(uint8_t *packet, unsigned int len){
 
     /* Initialization */
-    sr_ip_hdr_t * ip_hdr = ip_header(packet);
-    uint16_t c_cksum = 0
+    struct sr_ip_hdr * ip_hdr = ip_header(packet);
+    uint16_t c_cksum = 0;
     uint16_t r_cksum = ip_hdr->ip_sum;
     unsigned int hdr_len = ip_hdr->ip_hl * 4;
 
