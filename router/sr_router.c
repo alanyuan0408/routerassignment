@@ -221,7 +221,7 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
 
     printf("** Recieved IP packet\n");
-    print_hdrs(packet, len)
+    print_hdrs(packet, len);
 
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
