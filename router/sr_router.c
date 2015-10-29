@@ -109,7 +109,6 @@ void arp_handlepacket(struct sr_instance *sr,
     /* Initialization */
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
     struct sr_if* r_iface = sr_get_interface(sr,interface);
-    sr_print_if(r_iface);
 
     struct sr_arpentry *arp_entry;
     struct sr_arpreq *arp_req;
@@ -172,8 +171,8 @@ void arp_handlepacket(struct sr_instance *sr,
 
       /* encap the arp reply into ethernet frame and then send it    ************   THIS PART NEED TO BE EXPRESSED AS A UNIVERSAL FUNCTION   */
       sr_ethernet_hdr_t *sr_ether_pkt;
-      unsigned int len = sizeof(arp_packet_reply);
-      unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
+      unsigned int len = sizeof(struct sr_arp_hdr);
+      unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
       sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
       assert(sr_ether_pkt);
 
