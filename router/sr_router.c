@@ -123,10 +123,9 @@ void arp_handlepacket(struct sr_instance *sr,
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
 
-      /* Check if the packet request is for us 
-      if(sr_arp_req_not_for_us(sr,packet,len,interface))
+      if(sr_arp_req_not_for_us(sr, packet, len, interface))
         return;
-      */
+
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
@@ -178,7 +177,6 @@ void arp_handlepacket(struct sr_instance *sr,
 
 
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface){
-
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr build_arp;
 
