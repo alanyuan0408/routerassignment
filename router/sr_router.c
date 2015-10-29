@@ -32,6 +32,7 @@ void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 int arp_validpacket(uint8_t *packet, unsigned int len);
+struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
 
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
@@ -121,23 +122,16 @@ void arp_handlepacket(struct sr_instance *sr,
       return;
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
-    	/*how to define that fuction??
+
+      /* Check if the packet request is for us 
       if(sr_arp_req_not_for_us(sr,packet,len,interface))
-        return;*/
+        return;
+      */
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
       struct sr_arp_hdr arp_packet_reply;
-      /* set value of arp packet  */
-      arp_packet_reply.ar_hrd= htons(arp_hrd_ethernet);         /*same as received packet*/
-      arp_packet_reply.ar_pro= htons(arp_pro_ip);         /*same as received packet*/
-      arp_packet_reply.ar_hln= ETHER_ADDR_LEN;         /*same as received packet*/
-      arp_packet_reply.ar_pln= sizeof(uint32_t);         /*same as received packet*/
-      arp_packet_reply.ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
-      arp_packet_reply.ar_sip= r_iface->ip;   /* flip sender IP address */
-      arp_packet_reply.ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
-      memcpy(arp_packet_reply.ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      memcpy(arp_packet_reply.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
+      arp_packet_reply = build_arp_reply(arp_hdr, r_iface);
       
       /* Build the Ethernet Packet */
       struct sr_ethernet_hdr sr_ether_pkt;
@@ -180,6 +174,26 @@ void arp_handlepacket(struct sr_instance *sr,
         }   
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
+}
+
+
+struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface){
+
+      /* Initalize ARP header and Input Interface */
+      struct sr_arp_hdr *build_arp;
+
+      /* set value of arp packet  */
+      build_arp.ar_hrd= htons(arp_hrd_ethernet);
+      build_arp.ar_pro= htons(arp_pro_ip);
+      build_arp.ar_hln= ETHER_ADDR_LEN;
+      build_arp.ar_pln= sizeof(uint32_t);
+      build_arp.ar_op = htons(arp_op_reply);
+      build_arp.ar_sip= r_iface->ip;
+      build_arp.ar_tip= arp_hdr->ar_sip;
+      memcpy(build_arp.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
+      memcpy(build_arp.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN);
+
+      return build_arp;
 }
 
 int arp_validpacket(uint8_t *packet, unsigned int len){
