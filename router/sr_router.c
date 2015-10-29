@@ -177,11 +177,11 @@ void arp_handlepacket(struct sr_instance *sr,
       eth_pkt_len = sizeof(arp_packet_reply) + sizeof(sr_ether_pkt)
       send_packet = malloc(eth_pkt_len)
       memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
-      memcpy(send_packet + sizeof(sr_ether_pkt), arp_packet_reply, sizeof(arp_packet_reply));
+      memcpy(send_packet + sizeof(sr_ether_pkt), &arp_packet_reply, sizeof(arp_packet_reply));
 
       /* send the reply*/
       sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
-      free(packet_rpy);
+      free(send_packet);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
