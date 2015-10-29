@@ -154,10 +154,10 @@ void arp_handlepacket(struct sr_instance *sr,
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
-      struct sr_arp_hdr_t *arp_packet_reply;
+      sr_arp_hdr_t *arp_packet_reply;
       unsigned int arplen =  sizeof(sr_arp_hdr_t);
       arp_packet_reply = (sr_arp_hdr_t *)malloc(arplen);
-      assert(arp_packet_reply); 
+      assert(arp_packet_reply);  
 
       /* set value of arp packet  */
       arp_packet_reply->ar_hrd= arp_hdr->ar_hrd;         /*same as received packet*/
@@ -170,7 +170,8 @@ void arp_handlepacket(struct sr_instance *sr,
       memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
       arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
 
-      print_hdr_arp((uint8_t*)arp_packet_reply);
+      uint8_t *arp_packet_test = (uint8_t*)arp_packet_reply;
+      print_hdr_arp(arp_packet_test);
    
       /* encap the arp reply into ethernet frame and then send it    ************   THIS PART NEED TO BE EXPRESSED AS A UNIVERSAL FUNCTION   */
       sr_ethernet_hdr_t *sr_ether_pkt;
