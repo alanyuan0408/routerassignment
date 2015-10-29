@@ -120,26 +120,6 @@ void arp_handlepacket(struct sr_instance *sr,
     if (!arp_validpacket(packet, len))
       return;
 
-    struct sr_arpentry *arp_entry;
-    struct sr_arpreq *arp_req;
-
-    /* Check ARP cache  */
-    arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
-    if (arp_entry != 0){
-      free(arp_entry);
-    }else {
-      arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
-      /* Check ARP request queue, if not empty send out packets on it*/
-      if (arp_req != 0) {
-        struct sr_packet *pkt_wait = arp_req->packets;
-
-        while (pkt_wait != 0) {
-          /*some universal function to encap and send out packet*/
-          pkt_wait = pkt_wait->next;
-        }
-      } 
-    }   
-
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
     	/*how to define that fuction??
       if(sr_arp_req_not_for_us(sr,packet,len,interface))
@@ -178,12 +158,32 @@ void arp_handlepacket(struct sr_instance *sr,
       free(send_packet);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
+
+        struct sr_arpentry *arp_entry;
+        struct sr_arpreq *arp_req;
+
+        /* Check ARP cache  */
+        arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
+        if (arp_entry != 0){
+          free(arp_entry);
+        }else {
+          arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
+          /* Check ARP request queue, if not empty send out packets on it*/
+          if (arp_req != 0) {
+            struct sr_packet *pkt_wait = arp_req->packets;
+
+            while (pkt_wait != 0) {
+              /*some universal function to encap and send out packet*/
+              pkt_wait = pkt_wait->next;
+            }
+          } 
+        }   
         /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
 }
 
 int arp_validpacket(uint8_t *packet, unsigned int len){
-  
+
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
       return 0;
