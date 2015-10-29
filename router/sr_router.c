@@ -134,10 +134,10 @@ void arp_handlepacket(struct sr_instance *sr,
     /* Check ARP cache  */
     arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
     if (arp_entry != 0){
-      fprintf(stderr, "Entry is already in\n")
+      fprintf(stderr, "Entry is already in\n");
       free(arp_entry);
     }else {
-      fprintf(stderr, "Add ARP to arpcache\n")
+      fprintf(stderr, "Add ARP to arpcache\n");
       arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
 
       /* Check ARP request queue, if not empty send out packets on it*/
