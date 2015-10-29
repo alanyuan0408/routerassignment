@@ -154,19 +154,21 @@ void arp_handlepacket(struct sr_instance *sr,
       printf("** ARP packet request to me \n");   
    
       /* build the arp reply packet  */
-      struct sr_arp_hdr arp_packet_reply;
+      struct sr_arp_hdr_t *arp_packet_reply;
+      unsigned int arplen =  sizeof(sr_arp_hdr_t);
+      arp_packet_reply = (sr_arp_hdr_t *)malloc(arplen);
       assert(arp_packet_reply); 
 
       /* set value of arp packet  */
-      arp_packet_reply.ar_hrd= htons(arp_hrd_ethernet);
-      arp_packet_reply.ar_pro= htons(arp_pro_ip);
-      arp_packet_reply.ar_hln= ETHER_ADDR_LEN;
-      arp_packet_reply.ar_pln= sizeof(uint32_t);
-      arp_packet_reply.ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
-      memcpy(arp_packet_reply.ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_reply.ar_sip= arp_hdr->ar_tip;   /* flip sender IP address */
-      memcpy(arp_packet_reply.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
-      arp_packet_reply.ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
+      arp_packet_reply->ar_hrd= arp_hdr->ar_hrd;         /*same as received packet*/
+      arp_packet_reply->ar_pro= arp_hdr->ar_pro;         /*same as received packet*/
+      arp_packet_reply->ar_hln= arp_hdr->ar_hln;         /*same as received packet*/
+      arp_packet_reply->ar_pln= arp_hdr->ar_pln;         /*same as received packet*/
+      arp_packet_reply->ar_op = htons(arp_op_reply);     /*ARP opcode--ARP reply */
+      memcpy(arp_packet_reply->ar_sha, r_iface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
+      arp_packet_reply->ar_sip= arp_hdr->ar_tip;   /* flip sender IP address */
+      memcpy(arp_packet_reply->ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN); /* flip target hardware address*/
+      arp_packet_reply->ar_tip= arp_hdr->ar_sip;   /* flip target IP address */
 
       print_hdr_arp((uint8_t*)arp_packet_reply);
    
