@@ -87,6 +87,8 @@ void sr_handlepacket(struct sr_instance *sr,
     }
 
     /* Handle Packet */
+
+    print_hdr_eth(packet);
     
     if (ethertype(packet) == ethertype_arp){
       arp_handlepacket(sr, packet, len, interface);
@@ -181,10 +183,7 @@ void arp_handlepacket(struct sr_instance *sr,
       memcpy(sr_ether_pkt->ether_shost, r_iface->addr, ETHER_ADDR_LEN);
       sr_ether_pkt->ether_type = htons(ethertype_arp);
 
-      print_hdr_arp((uint8_t*)arp_hdr);
-
       uint8_t *packet_rpy = (uint8_t*)sr_ether_pkt;
-      print_hdr_eth(packet_rpy);
 
       /* send the reply*/
       sr_send_packet(sr, packet_rpy, total_len, r_iface->name);
