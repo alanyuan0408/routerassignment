@@ -113,6 +113,10 @@ void arp_handlepacket(struct sr_instance *sr,
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
     struct sr_if* r_iface = sr_get_interface(sr,interface);
 
+    if (r_iface->ip != arp_hdr->ar_tip){
+      return 0;
+    }
+
     if (!arp_validpacket(packet, len))
       return;
 
@@ -181,7 +185,6 @@ void arp_handlepacket(struct sr_instance *sr,
 int arp_validpacket(uint8_t *packet, unsigned int len){
 
     sr_arp_hdr_t *arp_hdr = arp_header(packet);
-    struct sr_if* r_iface = sr_get_interface(sr,interface);
 
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
@@ -194,12 +197,8 @@ int arp_validpacket(uint8_t *packet, unsigned int len){
     if (ntohs(arp_hdr->ar_pro) != arp_pro_ip){
       return 0;
     }
-    if (r_iface->ip != arp_hdr->ar_tip){
-      return 0;
-    }
 
     free(arp_hdr);
-    free(r_iface);
     return 1;
 }
 
