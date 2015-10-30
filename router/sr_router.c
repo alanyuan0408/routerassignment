@@ -206,10 +206,13 @@ void ip_handlepacket(struct sr_instance *sr,
 
     struct sr_ethernet_hdr sr_ether_pkt;
     uint8_t *ip_packet;
-    ip_packet = malloc(sr_ether_pkt);
+    unsigned int eth_pkt_len;
+    eth_pkt_len = sizeof(sr_ether_pkt);
+
+    ip_packet = malloc(eth_pkt_len);
     memcpy(ip_packet, &ip_hdr, sizeof(sr_ether_pkt));
 
-    sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, packet, len, interface);
+    sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
