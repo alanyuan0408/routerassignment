@@ -78,6 +78,7 @@ int ip_validpacket(uint8_t *packet, unsigned int len);
 int icmp_validpacket(struct sr_ip_hdr *ip_hdr);
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest);
+void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface);
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
