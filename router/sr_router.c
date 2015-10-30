@@ -226,7 +226,7 @@ void ip_handlepacket(struct sr_instance *sr,
     unsigned int ip_pkt_len;
     ip_pkt_len = sizeof(sr_ip_pkt);
 
-    ip_packet = malloc(eth_pkt_len);
+    ip_packet = malloc(sr_ip_pkt);
     memcpy(ip_packet, &ip_hdr, sizeof(sr_ip_pkt));
     struct sr_arpreq *req;  
 
