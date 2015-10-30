@@ -252,27 +252,10 @@ void ip_handlepacket(struct sr_instance *sr,
        
         struct sr_arpentry *arp_entry;
         struct sr_if *s_interface;
-        
-        /* Find longest prefix match in routing table. */
-
-        struct sr_rt* ip_walker;
         struct sr_rt* lpmatch = 0;
-        unsigned long lpmatch_len = 0;
-        struct in_addr dst_ip;
+
+        lpmatch = longest_prefix_matching(sr, ip_hdr);
         
-        dst_ip.s_addr = ip_hdr->ip_dst;  
-        ip_walker = sr->routing_table;
-        
-        /* If there is a longer match ahead replace it */
-        while(ip_walker != 0) {
-          if (((ip_walker->dest.s_addr & ip_walker->mask.s_addr) == (dst_ip.s_addr & ip_walker->mask.s_addr)) && 
-            (lpmatch_len <= ip_walker->mask.s_addr)) {          
-            lpmatch_len = ip_walker->mask.s_addr;
-            lpmatch = ip_walker;
-          }
-          ip_walker = ip_walker->next;
-        }
-    
         /* If cannot find dst_ip in routing table, send ICMP host unreachable */
         if (lpmatch == 0) {
         
@@ -286,8 +269,6 @@ void ip_handlepacket(struct sr_instance *sr,
       
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
-
-
 
       /* *************IF miss APR cache, Send APR request packet************** */
       sr_arp_hdr_t *arp_packet_request;
@@ -366,4 +347,28 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
       if_walker = if_walker->next;
     }
     return 0;
+}
+
+struct sr_rt* longest_prefix_matching(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
+    /* Find longest prefix match in routing table. */
+
+    struct sr_rt* ip_walker;
+    struct sr_rt* lpmatch = 0;
+    unsigned long lpmatch_len = 0;
+    struct in_addr dst_ip;
+        
+    dst_ip.s_addr = ip_hdr->ip_dst;  
+    ip_walker = sr->routing_table;
+        
+    /* If there is a longer match ahead replace it */
+    while(ip_walker != 0) {
+      if (((ip_walker->dest.s_addr & ip_walker->mask.s_addr) == (dst_ip.s_addr & ip_walker->mask.s_addr)) && 
+        (lpmatch_len <= ip_walker->mask.s_addr)) {          
+          lpmatch_len = ip_walker->mask.s_addr;
+          lpmatch = ip_walker;
+      }
+        ip_walker = ip_walker->next;
+    }
+
+    return lpmatch;
 }
