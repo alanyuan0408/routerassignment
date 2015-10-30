@@ -234,7 +234,6 @@ void ip_handlepacket(struct sr_instance *sr,
         memcpy(ip_pkt, ip_hdr, len);
 
         /* Find longest prefix match in routing table. */
-        struct sr_rt* ip_walker;
         struct sr_rt* lpmatch;
 
         lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
@@ -307,34 +306,8 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 
           s_interface = sr_get_interface(sr, req->packets->iface);
           
-          /* set value of arp packet  */
-          arp_packet_request->ar_hrd = htons(arp_hrd_ethernet);    
-          arp_packet_request->ar_pro = htons(arp_pro_ip);        
-          arp_packet_request->ar_hln = ETHER_ADDR_LEN;        
-          arp_packet_request->ar_pln = ARP_PLEN;       
-          arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
-          
-          /*get hardware address of router*/  
-          /*use s_interface as the struct member of sr_if that send the packet out*/
+          arp_boardcast(sr, s_interface)
 
-          memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-          arp_packet_request->ar_sip = s_interface->ip;
-          arp_packet_request->ar_tip = req->ip;
-
-          /* encap the arp request into ethernet frame and then send it */
-          sr_ethernet_hdr_t *sr_ether_pkt; 
-
-          memset(sr_ether_pkt->ether_dhost, 255, ETHER_ADDR_LEN);
-          memcpy(sr_ether_pkt->ether_shost, arp_packet_request->ar_sha, ETHER_ADDR_LEN);
-          sr_ether_pkt->ether_type = htons(ethertype_arp);
-               
-          uint8_t *packet_rqt;
-          unsigned int eth_pkt_len;
-          unsigned int total_len = sizeof(arp_packet_request) + sizeof(sr_ether_pkt);
-          packet_rqt = malloc(eth_pkt_len);
-          memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
-          memcpy(packet_rqt + sizeof(sr_ether_pkt), &arp_packet_request, sizeof(arp_packet_request));
-          
           /* send the reply*/
           sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
           free(packet_rqt);
