@@ -471,7 +471,7 @@ struct sr_icmp_hdr icmp_send_reply_packet()
 	return icmp_echo_reply;
 }
 
-struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
+struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
 
   	struct sr_icmp_t3_hdr *icmp_error_reply;
