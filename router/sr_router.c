@@ -35,6 +35,10 @@ int arp_validpacket(uint8_t *packet, unsigned int len);
 int ip_validpacket(uint8_t *packet, unsigned int len);
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
 
+/*--------------------------------------------------------------------
+* Reply Definations
+*----------------------------------------------------------------------*/
+#define ICMP_ECHO 0
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -355,9 +359,7 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     assert(sr);
 
     struct sr_if* if_walker = sr->if_list;
-    sr_print_if_list(sr);
     while(if_walker) {
-      sr_print_if(if_walker);
       if(ip_dst == if_walker->ip){
         return 1;
       }
