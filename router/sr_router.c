@@ -154,17 +154,19 @@ void arp_handlepacket(struct sr_instance *sr,
           free(arp_entry);
         }else {
           arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
+
           /* Check ARP request queue, if not empty send out packets on it*/
           if (arp_req != 0) {
             struct sr_packet *pkt_wait = arp_req->packets;
 
             while (pkt_wait != 0) {
+
               /*some universal function to encap and send out packet*/
+
               pkt_wait = pkt_wait->next;
             }
           } 
         }   
-        /* all need to do is done when manipulating the arp_req, this part only prints the message */
     }
 }
 
@@ -194,8 +196,8 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
-    struct sr_if *r_iface = sr_get_interface(sr,interface);
-    arp_boardcast(sr, r_iface);
+    //struct sr_if *r_iface = sr_get_interface(sr,interface);
+    //arp_boardcast(sr, r_iface);
 
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
@@ -208,7 +210,6 @@ void ip_handlepacket(struct sr_instance *sr,
     
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
-            icmp_handlepacket(sr, ip_hdr);
 
         } else {
 
@@ -221,7 +222,7 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If TTL reaches 0, send  ICMP time exceeded and return */
         if (ip_hdr->ip_ttl == 0) {
               
-          /* Send ICMP */
+          /* Send ICMP time exceeded */
 
           return;
         }
@@ -235,7 +236,6 @@ void ip_handlepacket(struct sr_instance *sr,
         memcpy(ip_pkt, ip_hdr, len);
 
         /* Find longest prefix match in routing table. */
-        struct sr_rt* ip_walker;
         struct sr_rt* lpmatch = 0;
 
         lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
@@ -259,7 +259,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
         if (arp_entry == 0){
 
-          /* *************IF miss APR cache, add the packet to ARP request queue */
+          /* IF miss APR cache, add the packet to ARP request queue */
           struct sr_arpreq *req;  
 
           req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, lpmatch->interface);
@@ -267,10 +267,10 @@ void ip_handlepacket(struct sr_instance *sr,
           free(ip_pkt);
         } else{
 
-            /* We have the arpCache, send out the packet right away */
+            /* Hit ARP cache, send out the packet right away */
 
             /* Encap the arp request into ethernet frame and then send it */
-            sr_ethernet_hdr_t *sr_ether_pkt;
+            sr_ethernet_hdr_t *sr_ether_pkt = 0;
 
             memcpy(sr_ether_pkt->ether_dhost, arp_entry->mac, ETHER_ADDR_LEN); /*address from routing table*/
             memcpy(sr_ether_pkt->ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
@@ -304,44 +304,11 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
         sr_arpreq_destroy(&sr->cache, req);
       } else {
           struct sr_if *s_interface;
-          sr_arp_hdr_t *arp_packet_request;
 
           s_interface = sr_get_interface(sr, req->packets->iface);
-          
-          /* set value of arp packet  */
-          arp_packet_request->ar_hrd = htons(arp_hrd_ethernet);    
-          arp_packet_request->ar_pro = htons(arp_pro_ip);        
-          arp_packet_request->ar_hln = ETHER_ADDR_LEN;        
-          arp_packet_request->ar_pln = ARP_PLEN;       
-          arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
-          
-          /*get hardware address of router*/  
-          /*use s_interface as the struct member of sr_if that send the packet out*/
-
-          memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-          arp_packet_request->ar_sip = s_interface->ip;
-          arp_packet_request->ar_tip = req->ip;
-
-          /* encap the arp request into ethernet frame and then send it */
-          sr_ethernet_hdr_t *sr_ether_pkt; 
-
-          memset(sr_ether_pkt->ether_dhost, 255, ETHER_ADDR_LEN);
-          memcpy(sr_ether_pkt->ether_shost, arp_packet_request->ar_sha, ETHER_ADDR_LEN);
-          sr_ether_pkt->ether_type = htons(ethertype_arp);
-               
-          uint8_t *packet_rqt;
-          unsigned int eth_pkt_len;
-          unsigned int total_len = sizeof(arp_packet_request) + sizeof(sr_ether_pkt);
-          packet_rqt = malloc(eth_pkt_len);
-          memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
-          memcpy(packet_rqt + sizeof(sr_ether_pkt), &arp_packet_request, sizeof(arp_packet_request));
-          
-          /* send the reply*/
-          sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
-          free(packet_rqt);
-
+          arp_boardcast(sr, s_interface);
           req->sent = time(0);
-          req->times_sent++;
+          req->times_sent ++;
         }
     }
 }
@@ -391,7 +358,7 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
 int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
 
     /* Initialization */
-    uint8_t icmp_hdr_ptr;
+    uint8_t *icmp_hdr_ptr;
     sr_icmp_hdr_t *icmp_hdr;
     uint16_t c_cksum;
     uint16_t r_cksum;
@@ -426,24 +393,25 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     return 0;
 }
 
-void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
+void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface)
+{
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr arp_boarcast;
 
       /* set value of arp packet  */
-      arp_boarcast.ar_hrd= htons(arp_hrd_ethernet);
-      arp_boarcast.ar_pro= htons(arp_pro_ip);
-      arp_boarcast.ar_hln= ETHER_ADDR_LEN;
-      arp_boarcast.ar_pln= sizeof(uint32_t);
+      arp_boarcast.ar_hrd = htons(arp_hrd_ethernet);
+      arp_boarcast.ar_pro = htons(arp_pro_ip);
+      arp_boarcast.ar_hln = ETHER_ADDR_LEN;
+      arp_boarcast.ar_pln = ARP_PLEN;
       arp_boarcast.ar_op = htons(arp_op_reply);
-      arp_boarcast.ar_sip= r_iface->ip;
+      arp_boarcast.ar_sip = s_interface->ip;
   
-      memcpy(arp_boarcast.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
+      memcpy(arp_boarcast.ar_sha, s_interface->addr, ETHER_ADDR_LEN); 
       memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
 
       /* Build the Ethernet Packet */
       struct sr_ethernet_hdr sr_ether_pkt;
-      memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
       memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN);
       sr_ether_pkt.ether_type = htons(ethertype_arp);
 
@@ -457,10 +425,11 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
 
       print_hdrs(send_packet, eth_pkt_len);
       /* send the reply*/
-      sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+      sr_send_packet(sr, send_packet, eth_pkt_len, s_interface->name);
 }
 
-struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest){
+struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
+{
     /* Find longest prefix match in routing table. */
 
     struct sr_rt* ip_walker;
