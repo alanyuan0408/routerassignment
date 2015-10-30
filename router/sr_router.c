@@ -231,7 +231,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
     struct sr_arpreq *req;  
 
-    req = sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, packet, len, interface);
+    req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
