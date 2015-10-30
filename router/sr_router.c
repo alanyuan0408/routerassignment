@@ -356,7 +356,6 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
 void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr arp_boarcast;
-      uint32_t Broadcast = 0xffffffffffff;
 
       /* set value of arp packet  */
       arp_boarcast.ar_hrd= htons(arp_hrd_ethernet);
@@ -365,7 +364,6 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
       arp_boarcast.ar_pln= sizeof(uint32_t);
       arp_boarcast.ar_op = htons(arp_op_reply);
       arp_boarcast.ar_sip= r_iface->ip;
-      arp_boarcast.ar_tip= *Broadcast;
       memcpy(arp_boarcast.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
       memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
 
