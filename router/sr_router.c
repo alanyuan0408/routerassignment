@@ -234,10 +234,8 @@ void ip_handlepacket(struct sr_instance *sr,
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
-    /* Validation 
-    if (!arp_validpacket(packet, len))
+    if (!ip_validpacket(packet, len))
       return;
-    */
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
@@ -247,7 +245,6 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_handlepacket(sr, ip_hdr);
 
         } else {
-
             /* Send icmp */
                     
         }
