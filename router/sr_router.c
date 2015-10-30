@@ -221,16 +221,16 @@ void ip_handlepacket(struct sr_instance *sr,
     /* SHOULD NOT BE HERE */
     arp_boardcast(sr, r_iface, ip_hdr);
 
-    struct sr_ethernet_hdr sr_ether_pkt;
+    struct sr_ip_hdr sr_ip_pkt;
     uint8_t *ip_packet;
-    unsigned int eth_pkt_len;
-    eth_pkt_len = sizeof(sr_ether_pkt);
+    unsigned int ip_pkt_len;
+    ip_pkt_len = sizeof(sr_ip_pkt);
 
     ip_packet = malloc(eth_pkt_len);
-    memcpy(ip_packet, &ip_hdr, sizeof(sr_ether_pkt));
+    memcpy(ip_packet, &ip_hdr, sizeof(sr_ip_pkt));
     struct sr_arpreq *req;  
 
-    req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
+    req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, ip_pkt_len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
