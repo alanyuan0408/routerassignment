@@ -302,7 +302,7 @@ void ip_handlepacket(struct sr_instance *sr,
             unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
             packet_rqt = malloc(total_len);
             memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
-            memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_hdr, len);
+            memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
 
             /*sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
             assert(sr_ether_pkt);*/ 
