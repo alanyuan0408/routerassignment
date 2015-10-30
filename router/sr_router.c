@@ -491,8 +491,8 @@ struct sr_icmp_t3_hdr* icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code
 	}
 	
 	icmp_error_reply->next_mtu = htons(MTU);
-/****************************encap the received ip header and the first 8 bytes ********************/
-        memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+  /****************************encap the received ip header and the first 8 bytes ********************/
+  memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
 	return icmp_error_reply;
 }
 
