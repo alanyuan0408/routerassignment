@@ -243,7 +243,7 @@ void ip_handlepacket(struct sr_instance *sr,
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
     
         /* Check whether ICMP echo request or TCP/UDP */
-        if (ntohs(ip_hdr->ip_p) == ip_protocol_icmp){
+        if (ip_hdr->ip_p == ip_protocol_icmp){
             icmp_handlepacket(sr, ip_hdr);
 
         } else {
