@@ -35,6 +35,7 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 int arp_validpacket(uint8_t *packet, unsigned int len);
 int ip_validpacket(uint8_t *packet, unsigned int len);
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
+struct sr_rt* longest_prefix_matching(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr);
 
 /*--------------------------------------------------------------------
 * Reply Definations
