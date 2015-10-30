@@ -212,7 +212,9 @@ void ip_handlepacket(struct sr_instance *sr,
     ip_packet = malloc(eth_pkt_len);
     memcpy(ip_packet, &ip_hdr, sizeof(sr_ether_pkt));
 
-    sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
+    struct sr_arpreq *arpreq;
+
+    arpreq = sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
