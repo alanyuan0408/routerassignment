@@ -202,11 +202,10 @@ void ip_handlepacket(struct sr_instance *sr,
     printf("** Recieved IP packet\n");
 
     /* Test Broadcast */
-    struct sr_if *r_iface = sr_get_interface(sr,interface);    
-    arp_boardcast(sr, r_iface);
-
-    /* Initialization */
+    struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
+
+    arp_boardcast(sr, r_iface, ip_hdr);
 
     if (!ip_validpacket(packet, len))
       return;
@@ -403,7 +402,7 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     return 0;
 }
 
-void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface)
+void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface, struct sr_ip_hdr *ip_hdr)
 {
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr arp_boarcast;
@@ -417,7 +416,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface)
       arp_boarcast.ar_sip = s_interface->ip;
   
       memcpy(arp_boarcast.ar_sha, s_interface->addr, ETHER_ADDR_LEN); 
-      memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
+      memset(arp_boarcast.ar_tha, ip_hdr->ip_src, ETHER_ADDR_LEN);
 
       /* Build the Ethernet Packet */
       struct sr_ethernet_hdr sr_ether_pkt;
