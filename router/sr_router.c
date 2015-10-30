@@ -155,9 +155,11 @@ void arp_handlepacket(struct sr_instance *sr,
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
         if (arp_entry != 0){
+          printf("ARP entry is already in the cache\n");
           free(arp_entry);
         }else {
           arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
+          printf("ARP insert entry\n");
 
           /* Check ARP request queue, if not empty send out packets on it*/
           if (arp_req != 0) {
@@ -205,6 +207,7 @@ void ip_handlepacket(struct sr_instance *sr,
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
+    /* SHOULD NOT BE HERE */
     arp_boardcast(sr, r_iface, ip_hdr);
 
     if (!ip_validpacket(packet, len))
