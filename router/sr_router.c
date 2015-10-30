@@ -369,7 +369,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
       /* Build the Ethernet Packet */
       struct sr_ethernet_hdr sr_ether_pkt;
       memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
-      memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN)
+      memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN);
       sr_ether_pkt.ether_type = htons(ethertype_arp);
 
       /* Copy the Packet into the sender buf */
