@@ -87,15 +87,11 @@ void sr_handlepacket(struct sr_instance *sr,
     if (len < sizeof(struct sr_ethernet_hdr)){
       return;
     }
-    
-    uint8_t *r_packet;
-    r_packet = malloc(len);
-    memcpy(r_packet, packet, len);
 
-    if (ethertype(r_packet) == ethertype_arp){
-      arp_handlepacket(sr, r_packet, len, interface);
+    if (ethertype(packet) == ethertype_arp){
+      arp_handlepacket(sr, packet, len, interface);
     } else {
-      ip_handlepacket(sr, r_packet, len, interface);
+      ip_handlepacket(sr, packet, len, interface);
     }
 
 }/* end sr_ForwardPacket */
@@ -155,11 +151,9 @@ void arp_handlepacket(struct sr_instance *sr,
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
         if (arp_entry != 0){
-          printf("ARP entry is already in the cache\n");
           free(arp_entry);
         }else {
           arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
-          printf("ARP insert entry\n");
 
           /* Check ARP request queue, if not empty send out packets on it*/
           if (arp_req != 0) {
@@ -209,6 +203,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* SHOULD NOT BE HERE */
     arp_boardcast(sr, r_iface, ip_hdr);
+    sr_arpcache_queuereq(sr->cache, r_iface->ip, packet, len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
