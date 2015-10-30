@@ -161,9 +161,25 @@ void arp_handlepacket(struct sr_instance *sr,
 
             while (pkt_wait != 0) {
 
-              /*some universal function to encap and send out packet*/
-              struct sr_ip_hdr *ip_hdr;
-              
+              /* Send the packets out */
+              struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
+
+              sr_ethernet_hdr_t *sr_ether_hdr;
+
+              memcpy(sr_ether_hdr->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
+              memcpy(sr_ether_hdr->ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
+              sr_ether_hdr->ether_type = htons(ethertype_ip);
+
+              uint8_t *packet_sent;
+              unsigned int total_len = pkt_wait->len + sizeof(struct sr_ethernet_hdr);
+              packet_sent = malloc(total_len);
+              memcpy(packet_sent, &sr_ether_hdr, sizeof(sr_ether_hdr));
+              memcpy(packet_sent + sizeof(sr_ether_hdr), pkt_wait->buf, pkt_wait->len);
+
+              /* forward the IP packet*/
+              sr_send_packet(sr, packet_sent, total_len, s_interface->name);
+              free(packet_sent);
+
               pkt_wait = pkt_wait->next;
             }
           } 
@@ -299,8 +315,8 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
             memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
 
-            sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
-            assert(sr_ether_pkt);  
+            /*sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
+            assert(sr_ether_pkt);*/ 
 
             /* forward the IP packet*/
             sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
