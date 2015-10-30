@@ -378,6 +378,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
       memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
       memcpy(send_packet + sizeof(sr_ether_pkt), &arp_boarcast, sizeof(arp_boarcast));
 
+      print_hdrs(send_packet, eth_pkt_len);
       /* send the reply*/
       sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
 }
