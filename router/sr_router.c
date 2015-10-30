@@ -88,10 +88,14 @@ void sr_handlepacket(struct sr_instance *sr,
       return;
     }
     
-    if (ethertype(packet) == ethertype_arp){
-      arp_handlepacket(sr, packet, len, interface);
+    uint8_t *r_packet;
+    r_packet = malloc(len);
+    memcpy(r_packet, packet, len);
+
+    if (ethertype(r_packet) == ethertype_arp){
+      arp_handlepacket(sr, r_packet, len, interface);
     } else {
-      ip_handlepacket(sr, packet, len, interface);
+      ip_handlepacket(sr, r_packet, len, interface);
     }
 
 }/* end sr_ForwardPacket */
@@ -170,8 +174,8 @@ void arp_handlepacket(struct sr_instance *sr,
     }
 }
 
-struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface){
-
+struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface)
+{
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr build_arp;
 
@@ -179,7 +183,7 @@ struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_if
       build_arp.ar_hrd= htons(arp_hrd_ethernet);
       build_arp.ar_pro= htons(arp_pro_ip);
       build_arp.ar_hln= ETHER_ADDR_LEN;
-      build_arp.ar_pln= sizeof(uint32_t);
+      build_arp.ar_pln= ARP_PLEN;
       build_arp.ar_op = htons(arp_op_reply);
       build_arp.ar_sip= r_iface->ip;
       build_arp.ar_tip= arp_hdr->ar_sip;
