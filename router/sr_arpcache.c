@@ -259,23 +259,3 @@ void *sr_arpcache_timeout(void *sr_ptr) {
     
     return NULL;
 }
-
-void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
-{
-    if (difftime(time(0), req->sent) > 1.0) {
-    
-      /* Host is not reachable */
-      if (req->times_sent >= 5) {
-
-        /* Send ICMP host unreachable*/
-
-        sr_arpreq_destroy(&sr->cache, req);
-      } else {
-
-          /* Send arp request */
-
-          req->sent = time(0);
-          req->times_sent++;
-        }
-    }
-}

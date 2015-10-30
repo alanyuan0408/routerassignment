@@ -25,18 +25,6 @@
 
 
 /*--------------------------------------------------------------------
-* Internal Function Prototypes
-*-------------------------------------------------------------------*/
-void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
-void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
-void imcp_handlepacket(struct sr_instance*, struct sr_ip_hdr *ip_hdr);
-
-int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
-int arp_validpacket(uint8_t *packet, unsigned int len);
-int ip_validpacket(uint8_t *packet, unsigned int len);
-struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
-
-/*--------------------------------------------------------------------
 * Reply Definations
 *----------------------------------------------------------------------*/
 #define ICMP_ECHO 0
@@ -181,8 +169,8 @@ void arp_handlepacket(struct sr_instance *sr,
     }
 }
 
-
 struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface){
+
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr build_arp;
 
@@ -198,29 +186,6 @@ struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_if
       memcpy(build_arp.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN);
 
       return build_arp;
-}
-
-int arp_validpacket(uint8_t *packet, unsigned int len){
-
-    /* Ensure the packet is long enough */
-    if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
-      return 0;
-    }
-
-    struct sr_arp_hdr *arp_hdr = arp_header(packet);
-    /* Ensure the arp header setting is correct*/
-    if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
-      return 0;
-    }
-    if (ntohs(arp_hdr->ar_pro) != arp_pro_ip){
-      return 0;
-    }
-
-    return 1;
-}
-
-void icmp_handlepacket(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
-  printf("Recieved ICMP packet");
 }
 
 void ip_handlepacket(struct sr_instance *sr,
@@ -245,16 +210,30 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_handlepacket(sr, ip_hdr);
 
         } else {
-            /* Send icmp */
+
+            /* Send ICMP */
                     
         }
     } else {
-       
-        struct sr_arpentry *arp_entry;
-        struct sr_if *s_interface;
-        
-        /* Find longest prefix match in routing table. */
+        ip_hdr->ip_ttl --;
 
+        /* If TTL reaches 0, send  ICMP time exceeded and return */
+        if (ip_hdr->ip_ttl == 0) {
+              
+          /* Send ICMP */
+
+          return;
+        }
+
+        /* update checksum */
+        ip_hdr->ip_sum = 0;
+        ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
+
+        uint8_t *ip_pkt;
+        ip_pkt = malloc(len);
+        memcpy(ip_pkt, ip_hdr, len);
+
+        /* Find longest prefix match in routing table. */
         struct sr_rt* ip_walker;
         struct sr_rt* lpmatch = 0;
         unsigned long lpmatch_len = 0;
@@ -280,54 +259,124 @@ void ip_handlepacket(struct sr_instance *sr,
 
         return;
         }
-      
+        
+        struct sr_arpentry *arp_entry;
+        struct sr_if *s_interface;
+
         /* Get the corresponding interface of the destination IP. */
         s_interface = sr_get_interface(sr, lpmatch->interface);
       
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
 
+        if (arp_entry == 0){
 
+          /* *************IF miss APR cache, add the packet to ARP request queue */
+          struct sr_arpreq *req;  
 
-      /* *************IF miss APR cache, Send APR request packet************** */
-      sr_arp_hdr_t *arp_packet_request;
-      unsigned int arplen =  sizeof(sr_arp_hdr_t);
-      arp_packet_request = (sr_arp_hdr_t *)malloc(arplen);
-      assert(arp_packet_request);  
+          req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, lpmatch->interface);
+          sr_handle_arpreq(sr, req);
+          free(ip_pkt);
+        } else{
 
-      /* set value of arp packet  */
-      arp_packet_request->ar_hrd = htons(arp_hrd_ethernet);    
-      arp_packet_request->ar_pro = htons(arp_pro_ip);        
-      arp_packet_request->ar_hln = ETHER_ADDR_LEN;        
-      arp_packet_request->ar_pln = ARP_PLEN;       
-      arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
-      /*get hardware address of router*/  
-      /*use s_interface as the struct member of sr_if that send the packet out*/
+            /* Encap the arp request into ethernet frame and then send it */
+            sr_ethernet_hdr_t *sr_ether_pkt;
 
-      memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
-      arp_packet_request->ar_sip= ip_hdr->ip_src;   /* same as the sent IP or another? */
-      arp_packet_request->ar_tip= ip_hdr->ip_dst;   /* flip target IP address */
-  
-      /* encap the arp request into ethernet frame and then send it    */
-      sr_ethernet_hdr_t *sr_ether_pkt;
-      unsigned int len = sizeof(arp_packet_request);
-      unsigned int total_len = len + sizeof(sr_ethernet_hdr_t);
-      sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
-      assert(sr_ether_pkt);  
+            memcpy(sr_ether_pkt->ether_dhost, arp_entry->mac, ETHER_ADDR_LEN); /*address from routing table*/
+            memcpy(sr_ether_pkt->ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
+            sr_ether_pkt->ether_type = htons(ethertype_ip);
 
-      memcpy(sr_ether_pkt->ether_dhost, arp_packet_request->ar_tha, ETHER_ADDR_LEN);
-      memcpy(sr_ether_pkt->ether_shost, arp_packet_request->ar_sha, ETHER_ADDR_LEN);
-      sr_ether_pkt->ether_type = htons(ethertype_arp);
+            uint8_t *packet_rqt;
+            unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
+            packet_rqt = malloc(total_len);
+            memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
+            memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
 
-      uint8_t *packet_rqt = (uint8_t*)sr_ether_pkt;
+            sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
+            assert(sr_ether_pkt);  
 
-      /* send the reply*/
-      sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
-      free(packet_rqt);
-
-      /* ********************IF hit the cache, Send IP packet (TTL-1; )************************** */
-
+            /* forward the IP packet*/
+            sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
+            free(packet_rqt);
+          }
       }
+}
+
+void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
+{
+    if (difftime(time(0), req->sent) > 1.0) {
+    
+      /* Host is not reachable */
+      if (req->times_sent >= 5) {
+
+        /* Send ICMP host unreachable*/
+
+        sr_arpreq_destroy(&sr->cache, req);
+      } else {
+          struct sr_if *s_interface;
+          sr_arp_hdr_t *arp_packet_request;
+
+          s_interface = sr_get_interface(sr, req->packets->iface);
+          
+          /* set value of arp packet  */
+          arp_packet_request->ar_hrd = htons(arp_hrd_ethernet);    
+          arp_packet_request->ar_pro = htons(arp_pro_ip);        
+          arp_packet_request->ar_hln = ETHER_ADDR_LEN;        
+          arp_packet_request->ar_pln = ARP_PLEN;       
+          arp_packet_request->ar_op  = htons(arp_op_request);     /*ARP opcode--ARP request */
+          
+          /*get hardware address of router*/  
+          /*use s_interface as the struct member of sr_if that send the packet out*/
+
+          memcpy(arp_packet_request->ar_sha, s_interface->addr, ETHER_ADDR_LEN); /* insert router interface hardware address*/
+          arp_packet_request->ar_sip = s_interface->ip;
+          arp_packet_request->ar_tip = req->ip;
+
+          /* encap the arp request into ethernet frame and then send it */
+          sr_ethernet_hdr_t *sr_ether_pkt; 
+
+          memset(sr_ether_pkt->ether_dhost, 255, ETHER_ADDR_LEN);
+          memcpy(sr_ether_pkt->ether_shost, arp_packet_request->ar_sha, ETHER_ADDR_LEN);
+          sr_ether_pkt->ether_type = htons(ethertype_arp);
+               
+          uint8_t *packet_rqt;
+          unsigned int eth_pkt_len;
+          unsigned int total_len = sizeof(arp_packet_request) + sizeof(sr_ether_pkt);
+          packet_rqt = malloc(eth_pkt_len);
+          memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
+          memcpy(packet_rqt + sizeof(sr_ether_pkt), &arp_packet_request, sizeof(arp_packet_request));
+          
+          /* send the reply*/
+          sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
+          free(packet_rqt);
+
+          req->sent = time(0);
+          req->times_sent++;
+        }
+    }
+}
+
+void icmp_handlepacket(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
+  printf("Recieved ICMP packet");
+}
+
+int arp_validpacket(uint8_t *packet, unsigned int len){
+
+    /* Ensure the packet is long enough */
+    if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
+      return 0;
+    }
+
+    struct sr_arp_hdr *arp_hdr = arp_header(packet);
+    /* Ensure the arp header setting is correct*/
+    if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
+      return 0;
+    }
+    if (ntohs(arp_hdr->ar_pro) != arp_pro_ip){
+      return 0;
+    }
+
+    return 1;
 }
 
 int ip_validpacket(uint8_t *packet, unsigned int len){
@@ -347,6 +396,29 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
     ip_hdr->ip_sum = 0;
     c_cksum = cksum(ip_hdr, hdr_len);
     if (c_cksum != r_cksum){
+      return 0;
+    }
+
+    return 1;
+}
+
+int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
+
+    /* Initialization */
+    uint8_t icmp_hdr_ptr;
+    sr_icmp_hdr_t *icmp_hdr;
+    uint16_t c_cksum;
+    uint16_t r_cksum;
+
+    /* Location ICMP header */
+    icmp_hdr_ptr = (uint8_t *)(ip_hdr)+(ip_hdr->ip_hl * 4);
+    icmp_hdr = (struct sr_icmp_hdr *)icmp_hdr_ptr;
+
+    /* Check cksum */
+    r_cksum = icmp_hdr->icmp_sum;
+    icmp_hdr->icmp_sum = 0;
+    c_cksum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len)-(ip_hdr->ip_hl * 4));
+    if(c_cksum != r_cksum){
       return 0;
     }
 

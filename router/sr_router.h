@@ -68,11 +68,22 @@ int sr_arp_req_not_for_us(struct sr_instance*, uint8_t *, unsigned int, char*);
 /* -- sr_router.c -- */
 void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
+void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
+void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req);
+void icmp_handlepacket(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr);
+int arp_validpacket(uint8_t *packet, unsigned int len);
+int ip_validpacket(uint8_t *packet, unsigned int len);
+int icmp_validpacket(struct sr_ip_hdr *ip_hdr);
+int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
+
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
 void sr_set_ether_ip(struct sr_instance* , uint32_t );
 void sr_set_ether_addr(struct sr_instance* , const unsigned char* );
 void sr_print_if_list(struct sr_instance* );
+
 
 #endif /* SR_ROUTER_H */
