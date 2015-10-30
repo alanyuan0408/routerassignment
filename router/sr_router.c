@@ -155,6 +155,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
       /* send the reply*/
       sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+      arp_boardcast(sr, r_iface);
       free(send_packet);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
@@ -255,7 +256,7 @@ void ip_handlepacket(struct sr_instance *sr,
         struct sr_if *s_interface;
         struct sr_rt* lpmatch = 0;
 
-        lpmatch = longest_prefix_matching(sr, ip_hdr);
+        lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
         
         /* If cannot find dst_ip in routing table, send ICMP host unreachable */
         if (lpmatch == 0) {
@@ -350,7 +351,37 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     return 0;
 }
 
-struct sr_rt* longest_prefix_matching(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
+void sr_arp_hdr arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
+      /* Initalize ARP header and Input Interface */
+      struct sr_arp_hdr arp_boarcast;
+
+      /* set value of arp packet  */
+      arp_boarcast.ar_hrd= htons(arp_hrd_ethernet);
+      arp_boarcast.ar_pro= htons(arp_pro_ip);
+      arp_boarcast.ar_hln= ETHER_ADDR_LEN;
+      arp_boarcast.ar_pln= sizeof(uint32_t);
+      arp_boarcast.ar_op = htons(arp_op_reply);
+      arp_boarcast.ar_sip= r_iface->ip;
+      memcpy(arp_boarcast.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
+
+      /* Build the Ethernet Packet */
+      struct sr_ethernet_hdr sr_ether_pkt;
+      memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+      sr_ether_pkt.ether_type = htons(ethertype_arp);
+
+      /* Copy the Packet into the sender buf */
+      uint8_t *send_packet;
+      unsigned int eth_pkt_len;
+      eth_pkt_len = sizeof(arp_boarcast) + sizeof(sr_ether_pkt);
+      send_packet = malloc(eth_pkt_len);
+      memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
+      memcpy(send_packet + sizeof(sr_ether_pkt), &arp_boarcast, sizeof(arp_boarcast));
+
+      /* send the reply*/
+      sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+}
+
+struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest){
     /* Find longest prefix match in routing table. */
 
     struct sr_rt* ip_walker;
@@ -358,7 +389,7 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, struct sr_ip_hdr *
     unsigned long lpmatch_len = 0;
     struct in_addr dst_ip;
         
-    dst_ip.s_addr = ip_hdr->ip_dst;  
+    dst_ip.s_addr = IP_dest;  
     ip_walker = sr->routing_table;
         
     /* If there is a longer match ahead replace it */
