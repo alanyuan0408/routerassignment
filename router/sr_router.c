@@ -314,7 +314,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_if *s_interface;
 
           s_interface = sr_get_interface(sr, req->packets->iface);
-          arp_boardcast(sr, s_interface);
+          /* arp_boardcast(sr, s_interface); */
           req->sent = time(0);
           req->times_sent ++;
         }
