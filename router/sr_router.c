@@ -468,7 +468,7 @@ struct sr_icmp_hdr icmp_send_reply_packet()
         
   icmp_echo_reply.icmp_type = htons(type_echo_reply);
   icmp_echo_reply.icmp_code = htons(code_echo_reply);
-	icmp_echo_reply.icmp_sum = cksum(icmp_echo_reply, sizeof(icmp_echo_reply));
+	icmp_echo_reply.icmp_sum = cksum(&icmp_echo_reply, sizeof(icmp_echo_reply));
 
 	return icmp_echo_reply;
 }
