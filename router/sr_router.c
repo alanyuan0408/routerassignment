@@ -29,6 +29,7 @@
 *-------------------------------------------------------------------*/
 void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
+void imcp_handlepacket(struct sr_instance*, struct sr_ip_hdr *ip_hdr);
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst);
 int arp_validpacket(uint8_t *packet, unsigned int len);
@@ -218,6 +219,10 @@ int arp_validpacket(uint8_t *packet, unsigned int len){
     return 1;
 }
 
+void icmp_handlepacket(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
+  printf("Recieved ICMP packet");
+}
+
 void ip_handlepacket(struct sr_instance *sr,
         uint8_t *packet,
         unsigned int len,
@@ -236,16 +241,14 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
-      printf("**Packet is for me\n");
     
-      /* Check whether ICMP echo request or TCP/UDP */
-      if (ntohs(ip_hdr->ip_p) == ip_protocol_icmp){
-        
-        /* Deal with icmp echo request */
+        /* Check whether ICMP echo request or TCP/UDP */
+        if (ntohs(ip_hdr->ip_p) == ip_protocol_icmp){
+            icmp_handlepacket(sr, ip_hdr);
 
-      } else {
+        } else {
 
-          /* Send icmp */
+            /* Send icmp */
                     
         }
     } else {
