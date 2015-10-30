@@ -23,7 +23,6 @@
 #include "sr_arpcache.h"
 #include "sr_utils.h"
 
-
 /*--------------------------------------------------------------------
 * Reply Definations
 *----------------------------------------------------------------------*/
@@ -194,7 +193,9 @@ void ip_handlepacket(struct sr_instance *sr,
         char *interface) 
 { 
     printf("** Recieved IP packet\n");
-    print_hdrs(packet, len);
+
+    struct sr_if *r_iface = sr_get_interface(sr,interface);
+    arp_boardcast(sr, r_iface);
 
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
@@ -236,22 +237,9 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Find longest prefix match in routing table. */
         struct sr_rt* ip_walker;
         struct sr_rt* lpmatch = 0;
-        unsigned long lpmatch_len = 0;
-        struct in_addr dst_ip;
+
+        lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
         
-        dst_ip.s_addr = ip_hdr->ip_dst;  
-        ip_walker = sr->routing_table;
-        
-        /* If there is a longer match ahead replace it */
-        while(ip_walker != 0) {
-          if (((ip_walker->dest.s_addr & ip_walker->mask.s_addr) == (dst_ip.s_addr & ip_walker->mask.s_addr)) && 
-            (lpmatch_len <= ip_walker->mask.s_addr)) {          
-            lpmatch_len = ip_walker->mask.s_addr;
-            lpmatch = ip_walker;
-          }
-          ip_walker = ip_walker->next;
-        }
-    
         /* If cannot find dst_ip in routing table, send ICMP host unreachable */
         if (lpmatch == 0) {
         
@@ -278,6 +266,8 @@ void ip_handlepacket(struct sr_instance *sr,
           sr_handle_arpreq(sr, req);
           free(ip_pkt);
         } else{
+
+            /* We have the arpCache, send out the packet right away */
 
             /* Encap the arp request into ethernet frame and then send it */
             sr_ethernet_hdr_t *sr_ether_pkt;
@@ -354,10 +344,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           req->times_sent++;
         }
     }
-}
-
-void icmp_handlepacket(struct sr_instance *sr, struct sr_ip_hdr *ip_hdr){
-  printf("Recieved ICMP packet");
 }
 
 int arp_validpacket(uint8_t *packet, unsigned int len){
@@ -438,4 +424,61 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
       if_walker = if_walker->next;
     }
     return 0;
+}
+
+void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
+      /* Initalize ARP header and Input Interface */
+      struct sr_arp_hdr arp_boarcast;
+
+      /* set value of arp packet  */
+      arp_boarcast.ar_hrd= htons(arp_hrd_ethernet);
+      arp_boarcast.ar_pro= htons(arp_pro_ip);
+      arp_boarcast.ar_hln= ETHER_ADDR_LEN;
+      arp_boarcast.ar_pln= sizeof(uint32_t);
+      arp_boarcast.ar_op = htons(arp_op_reply);
+      arp_boarcast.ar_sip= r_iface->ip;
+      memcpy(arp_boarcast.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
+      memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
+
+      /* Build the Ethernet Packet */
+      struct sr_ethernet_hdr sr_ether_pkt;
+      memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+      memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN);
+      sr_ether_pkt.ether_type = htons(ethertype_arp);
+
+      /* Copy the Packet into the sender buf */
+      uint8_t *send_packet;
+      unsigned int eth_pkt_len;
+      eth_pkt_len = sizeof(arp_boarcast) + sizeof(sr_ether_pkt);
+      send_packet = malloc(eth_pkt_len);
+      memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
+      memcpy(send_packet + sizeof(sr_ether_pkt), &arp_boarcast, sizeof(arp_boarcast));
+
+      print_hdrs(send_packet, eth_pkt_len);
+      /* send the reply*/
+      sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+}
+
+struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest){
+    /* Find longest prefix match in routing table. */
+
+    struct sr_rt* ip_walker;
+    struct sr_rt* lpmatch = 0;
+    unsigned long lpmatch_len = 0;
+    struct in_addr dst_ip;
+        
+    dst_ip.s_addr = IP_dest;  
+    ip_walker = sr->routing_table;
+        
+    /* If there is a longer match ahead replace it */
+    while(ip_walker != 0) {
+      if (((ip_walker->dest.s_addr & ip_walker->mask.s_addr) == (dst_ip.s_addr & ip_walker->mask.s_addr)) && 
+        (lpmatch_len <= ip_walker->mask.s_addr)) {          
+          lpmatch_len = ip_walker->mask.s_addr;
+          lpmatch = ip_walker;
+      }
+        ip_walker = ip_walker->next;
+    }
+
+    return lpmatch;
 }
