@@ -308,8 +308,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           
           arp_boardcast(sr, s_interface);
 
-          /* send the reply*/
-          sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
           free(packet_rqt);
 
           req->sent = time(0);
