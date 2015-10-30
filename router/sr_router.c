@@ -216,8 +216,7 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             /* send ICMP echo reply Packet */
-		struct sr_icmp_hdr* icmp_echo_reply =icmp_send_reply_packet();
-                struct sr_ip_hdr*  
+		        struct sr_icmp_hdr* icmp_echo_reply = icmp_send_reply_packet();
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
