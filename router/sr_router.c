@@ -203,6 +203,12 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* SHOULD NOT BE HERE */
     arp_boardcast(sr, r_iface, ip_hdr);
+
+    struct sr_ethernet_hdr sr_ether_pkt;
+    uint8_t *ip_packet;
+    ip_packet = malloc(sr_ether_pkt);
+    memcpy(ip_packet, &ip_hdr, sizeof(sr_ether_pkt));
+
     sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, packet, len, interface);
 
     if (!ip_validpacket(packet, len))
