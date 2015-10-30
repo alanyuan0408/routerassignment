@@ -211,11 +211,13 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
-            /* ICMP handle Packet */
+            /* send ICMP echo reply Packet */
+		struct sr_icmp_hdr* icmp_echo_reply =icmp_send_reply_packet();
+                struct sr_ip_hdr*  
 
-        } else {
+        } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
-            /* Send ICMP */
+            /* Send ICMP unreachable */
                     
         }
     } else {
