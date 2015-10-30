@@ -18,7 +18,6 @@
 */
 void sr_arpcache_sweepreqs(struct sr_instance *sr)
 { 
-    printf("** SWEEP\n");
     struct sr_arpcache *cache;
     struct sr_arpreq *req, *next;
     
