@@ -201,6 +201,10 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
+    /* Test Broadcast */
+    struct sr_if *r_iface = sr_get_interface(sr,interface);    
+    arp_boardcast(sr, r_iface);
+
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
