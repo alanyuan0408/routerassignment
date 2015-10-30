@@ -364,6 +364,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *r_iface){
       arp_boarcast.ar_pln= sizeof(uint32_t);
       arp_boarcast.ar_op = htons(arp_op_reply);
       arp_boarcast.ar_sip= r_iface->ip;
+  
       memcpy(arp_boarcast.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
       memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
 
