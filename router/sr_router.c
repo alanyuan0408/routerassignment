@@ -156,7 +156,6 @@ void arp_handlepacket(struct sr_instance *sr,
 
       /* send the reply*/
       sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
-      arp_boardcast(sr, r_iface);
       free(send_packet);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
@@ -233,6 +232,9 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
     print_hdrs(packet, len);
+
+    struct sr_if *r_iface = sr_get_interface(sr,interface);
+    arp_boardcast(sr, r_iface);
 
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
