@@ -167,8 +167,8 @@ void arp_handlepacket(struct sr_instance *sr,
               struct sr_ethernet_hdr sr_ether_hdr;
 
               memcpy(sr_ether_hdr.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
-              memcpy(sr_ether_hdr->ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
-              sr_ether_hdr->ether_type = htons(ethertype_ip);
+              memcpy(sr_ether_hdr.ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
+              sr_ether_hdr.ether_type = htons(ethertype_ip);
 
               uint8_t *packet_sent;
               unsigned int total_len = pkt_wait->len + sizeof(struct sr_ethernet_hdr);
