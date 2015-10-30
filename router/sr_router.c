@@ -465,14 +465,13 @@ struct sr_icmp_hdr* icmp_send_reply_packet()
 {
 
 	struct sr_icmp_hdr *icmp_echo_reply;
-        icmp_echo_reply->icmp_type = htons(type_echo_reply);
-        icmp_echo_reply->icmp_code = htons(code_echo_reply);
+        
+  icmp_echo_reply->icmp_type = htons(type_echo_reply);
+  icmp_echo_reply->icmp_code = htons(code_echo_reply);
 	icmp_echo_reply->icmp_sum = 0;
-	icmp_echo_reply->icmp_sum = cksum(icmp_echo_reply,sizeof(icmp_echo_reply));
+	icmp_echo_reply->icmp_sum = cksum(icmp_echo_reply, sizeof(icmp_echo_reply));
 
 	return icmp_echo_reply;
-
-	
 }
 
 struct sr_icmp_t3_hdr* icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
