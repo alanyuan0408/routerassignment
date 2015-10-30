@@ -302,12 +302,10 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
         sr_arpreq_destroy(&sr->cache, req);
       } else {
           struct sr_if *s_interface;
-          sr_arp_hdr_t *arp_packet_request;
 
           s_interface = sr_get_interface(sr, req->packets->iface);
           
           arp_boardcast(sr, s_interface);
-
           free(packet_rqt);
 
           req->sent = time(0);
@@ -361,8 +359,8 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
 int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
 
     /* Initialization */
-    uint8_t icmp_hdr_ptr;
-    sr_icmp_hdr_t *icmp_hdr;
+    uint8_t *icmp_hdr_ptr;
+    struct sr_icmp_hdr *icmp_hdr;
     uint16_t c_cksum;
     uint16_t r_cksum;
 
