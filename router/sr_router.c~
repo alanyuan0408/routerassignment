@@ -461,19 +461,46 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
 struct sr_icmp_hdr icmp_send_reply_packet()
 {
 
-
+<<<<<<< HEAD
+	struct sr_icmp_hdr *icmp_echo_reply;
+        icmp_echo_reply.icmp_type = htons(type_echo_reply);
+        icmp_echo_reply.icmp_code = htons(code_echo_reply);
+	icmp_echo_reply.icmp_sum = 0;
+	icmp_echo_reply.icmp_sum = cksum(icmp_echo_reply,sizeof(icmp_echo_reply));
+=======
 	struct sr_icmp_hdr icmp_echo_reply;
         
-  	icmp_echo_reply.icmp_type = htons(type_echo_reply);
-  	icmp_echo_reply.icmp_code = htons(code_echo_reply);
+  icmp_echo_reply.icmp_type = htons(type_echo_reply);
+  icmp_echo_reply.icmp_code = htons(code_echo_reply);
 	icmp_echo_reply.icmp_sum = cksum(&icmp_echo_reply, sizeof(icmp_echo_reply));
+>>>>>>> 632c4d3466f18f5195eae2f80ed6224a69a5fd98
 
 	return icmp_echo_reply;
 }
 
 struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
-
+<<<<<<< HEAD
+	struct sr_icmp_t3_hdr icmp_error_reply;
+        icmp_error_reply->icmp_type = htons(type_dst_unreach);
+	switch (code_num)
+	{
+		case 0:
+			icmp_error_reply.icmp_code = htons(code_net_unreach);
+			break;
+		case 1:
+			icmp_error_reply.icmp_code = htons(code_port_unreach);
+			break;
+		case 3:
+			icmp_error_reply.icmp_code = htons(code_host_unreach);
+			break;
+	}
+	
+	icmp_error_reply->next_mtu = htons(MTU);
+/****************************encap the received ip header and the first 8 bytes ********************/
+        memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+	return icmp_error_reply;
+=======
   	struct sr_icmp_t3_hdr *icmp_error_reply;
 
     icmp_error_reply->icmp_type = htons(type_dst_unreach);
@@ -496,6 +523,7 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
     memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
 
   	return icmp_error_reply;
+>>>>>>> 632c4d3466f18f5195eae2f80ed6224a69a5fd98
 }
 
 
