@@ -195,7 +195,6 @@ void ip_handlepacket(struct sr_instance *sr,
     printf("** Recieved IP packet\n");
 
     struct sr_if *r_iface = sr_get_interface(sr,interface);
-    arp_boardcast(sr, r_iface);
 
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
@@ -236,7 +235,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
         /* Find longest prefix match in routing table. */
         struct sr_rt* ip_walker;
-        struct sr_rt* lpmatch = 0;
+        struct sr_rt* lpmatch;
 
         lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
         
