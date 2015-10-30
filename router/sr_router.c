@@ -154,7 +154,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
-        if (arp_entry != 0){
+        if (arp_entry != NULL){
           printf("ARP entry is already in the cache\n");
           free(arp_entry);
         }else {
