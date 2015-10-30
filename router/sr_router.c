@@ -166,7 +166,8 @@ void arp_handlepacket(struct sr_instance *sr,
             while (pkt_wait != 0) {
 
               /*some universal function to encap and send out packet*/
-
+              struct sr_ip_hdr *ip_hdr;
+              
               pkt_wait = pkt_wait->next;
             }
           } 
@@ -200,9 +201,6 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
-    /*struct sr_if *r_iface = sr_get_interface(sr,interface);*/
-    /*arp_boardcast(sr, r_iface);*/
-
     /* Initialization */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
@@ -216,8 +214,9 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             /* send ICMP echo reply Packet */
-		struct sr_icmp_hdr* icmp_echo_reply =icmp_send_reply_packet();
-                struct sr_ip_hdr*  
+
+		        struct sr_icmp_hdr *icmp_echo_reply =icmp_send_reply_packet();
+            struct sr_ip_hdr *  
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -251,7 +250,7 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If cannot find dst_ip in routing table, send ICMP host unreachable */
         if (lpmatch == 0) {
         
-        /* Send ICMP */
+        /* Send ICMP host unreachable */
 
         return;
         }
@@ -440,7 +439,6 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface)
 struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
 {
     /* Find longest prefix match in routing table. */
-
     struct sr_rt* ip_walker;
     struct sr_rt* lpmatch = 0;
     unsigned long lpmatch_len = 0;
@@ -465,38 +463,41 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
 struct sr_icmp_hdr* icmp_send_reply_packet()
 {
 
-	struct sr_icmp_hdr *icmp_echo_reply;
-        icmp_echo_reply->icmp_type = htons(type_echo_reply);
-        icmp_echo_reply->icmp_code = htons(code_echo_reply);
-	icmp_echo_reply->icmp_sum = 0;
-	icmp_echo_reply->icmp_sum = cksum(icmp_echo_reply,sizeof(icmp_echo_reply));
+  	struct sr_icmp_hdr *icmp_echo_reply;
+    icmp_echo_reply->icmp_type = htons(type_echo_reply);
+    icmp_echo_reply->icmp_code = htons(code_echo_reply);
+  	icmp_echo_reply->icmp_sum = 0;
+  	icmp_echo_reply->icmp_sum = cksum(icmp_echo_reply, sizeof(icmp_echo_reply));
 
-	return icmp_echo_reply;
+  	return icmp_echo_reply;
 
 	
 }
 
 struct sr_icmp_t3_hdr* icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
-	struct sr_icmp_t3_hdr *icmp_error_reply;
-        icmp_error_reply->icmp_type = htons(type_dst_unreach);
-	switch (code_num)
-	{
-		case 0:
-			icmp_error_reply->icmp_code = htons(code_net_unreach);
-			break;
-		case 1:
-			icmp_error_reply->icmp_code = htons(code_port_unreach);
-			break;
-		case 3:
-			icmp_error_reply->icmp_code = htons(code_host_unreach);
-			break;
-	}
-	
-	icmp_error_reply->next_mtu = htons(MTU);
-/****************************encap the received ip header and the first 8 bytes ********************/
-        memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
-	return icmp_error_reply;
+  	struct sr_icmp_t3_hdr *icmp_error_reply;
+
+    icmp_error_reply->icmp_type = htons(type_dst_unreach);
+  	switch (code_num)
+  	{
+  		case 0:
+  			icmp_error_reply->icmp_code = htons(code_net_unreach);
+  			break;
+  		case 1:
+  			icmp_error_reply->icmp_code = htons(code_port_unreach);
+  			break;
+  		case 3:
+  			icmp_error_reply->icmp_code = htons(code_host_unreach);
+  			break;
+  	}
+  	
+  	icmp_error_reply->next_mtu = htons(MTU);
+
+    /* Encap the received ip header and the first 8 bytes */
+    memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+
+  	return icmp_error_reply;
 }
 
 
