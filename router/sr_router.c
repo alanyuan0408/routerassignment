@@ -205,7 +205,8 @@ void ip_handlepacket(struct sr_instance *sr,
     
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
-            icmp_handlepacket(sr, ip_hdr);
+
+            /* ICMP handle Packet */
 
         } else {
 
