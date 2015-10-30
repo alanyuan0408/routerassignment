@@ -164,9 +164,9 @@ void arp_handlepacket(struct sr_instance *sr,
               /* Send the packets out */
               struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
 
-              sr_ethernet_hdr_t *sr_ether_hdr;
+              struct sr_ethernet_hdr sr_ether_hdr;
 
-              memcpy(sr_ether_hdr->ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
+              memcpy(sr_ether_hdr.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
               memcpy(sr_ether_hdr->ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
               sr_ether_hdr->ether_type = htons(ethertype_ip);
 
@@ -228,7 +228,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
     ip_packet = malloc(eth_pkt_len);
     memcpy(ip_packet, &ip_hdr, sizeof(sr_ether_pkt));
-
     struct sr_arpreq *req;  
 
     req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, eth_pkt_len, interface);
