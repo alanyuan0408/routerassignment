@@ -412,7 +412,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface, struct sr_
       arp_boarcast.ar_pro = htons(arp_pro_ip);
       arp_boarcast.ar_hln = ETHER_ADDR_LEN;
       arp_boarcast.ar_pln = ARP_PLEN;
-      arp_boarcast.ar_op = htons(arp_op_reply);
+      arp_boarcast.ar_op = htons(arp_op_request);
       arp_boarcast.ar_sip = s_interface->ip;
       arp_boarcast.ar_tip = ip_hdr->ip_src;
   
