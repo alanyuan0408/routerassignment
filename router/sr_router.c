@@ -203,7 +203,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* SHOULD NOT BE HERE */
     arp_boardcast(sr, r_iface, ip_hdr);
-    sr_arpcache_queuereq(sr->cache, r_iface->ip, packet, len, interface);
+    sr_arpcache_queuereq(sr->cache, ip_hdr->ip_src, packet, len, interface);
 
     if (!ip_validpacket(packet, len))
       return;
