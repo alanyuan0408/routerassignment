@@ -211,6 +211,8 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
+            /* ICMP handle Packet */
+
         } else {
 
             /* Send ICMP */
@@ -321,7 +323,8 @@ int arp_validpacket(uint8_t *packet, unsigned int len){
     }
 
     struct sr_arp_hdr *arp_hdr = arp_header(packet);
-    /* Ensure the arp header setting is correct*/
+
+    /* Ensure the arp header setting is correct */
     if (ntohs(arp_hdr->ar_hrd) != arp_hrd_ethernet){
       return 0;
     }
