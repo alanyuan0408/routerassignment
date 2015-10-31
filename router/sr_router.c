@@ -27,6 +27,7 @@
 * Reply Definations
 *----------------------------------------------------------------------*/
 #define ICMP_ECHO 0
+#define ICMP_IP_HDR_LEN 5
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -247,9 +248,11 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(cache_packet, ip_hdr, total_len);
             struct sr_arpreq *req;
 
-            icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
             uint16_t icmp_len;
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, sizeof(icmp_hdr_ptr));
+            icmp_len = total_len - ICMP_IP_HDR_LEN;
+
+            icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
