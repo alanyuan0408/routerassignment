@@ -214,8 +214,6 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
-    print_hdrs(packet, len);
-
     /* Test Broadcast */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
@@ -232,14 +230,21 @@ void ip_handlepacket(struct sr_instance *sr,
             /* send ICMP echo reply Packet */
             struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
 
-            uint8_t *ICMP_packet;
-            unsigned int ICMP_packet_len;
-            ICMP_packet_len = sizeof(icmp_echo_reply);
-            ICMP_packet = malloc(sizeof(icmp_echo_reply));
-            memcpy(ICMP_packet, &(icmp_echo_reply), sizeof(icmp_echo_reply));
+            /* Modify IP reply header */
+            uint32_t *save_src;
+            save_src = ip_hdr->ip_src;
+            ip_hdr->ip_src = ip_hdr->ip_dst;
+            ip_hdr->ip_dst = save_src;
+
+            uint8_t *cache_packet;
+            unsigned int cache_packet_len;
+            cache_packet_len = sizeof(icmp_echo_reply) + sizeof(sr_ip_hdr);
+            cache_packet = malloc(sizeof(icmp_echo_reply));
+            memcpy(cache_packet, &(ip_hdr), sizeof(sr_ip_hdr));
+            memcpy(cache_packet + sizeof(sr_ip_hdr), &(icmp_echo_reply), sizeof(icmp_echo_reply));
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ICMP_packet, ICMP_packet_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, cache_packet_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
