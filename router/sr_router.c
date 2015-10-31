@@ -254,7 +254,7 @@ void ip_handlepacket(struct sr_instance *sr,
             fprintf(stderr, "%d.\n", icmp_len);
 
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, 16);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, 28);
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
