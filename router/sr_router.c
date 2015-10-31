@@ -218,11 +218,6 @@ void ip_handlepacket(struct sr_instance *sr,
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
-    /* SHOULD NOT BE HERE */
-
-    /*req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, ip_pkt_len, interface);
-    */
-
     if (!ip_validpacket(packet, len))
       return;
 
@@ -234,6 +229,15 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* send ICMP echo reply Packet */
             struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
+
+            uint8_t *ICMP_packet;
+            unsigned int ICMP_packet_len;
+            ICMP_packet_len = sizeof(icmp_echo_reply);
+            ICMP_packet = malloc(sizeof(icmp_echo_reply));
+            memcpy(ICMP_packet, &(icmp_echo_reply), sizeof(icmp_echo_reply));
+            struct sr_arpreq *req;
+
+            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ICMP_packet, ICMP_packet_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -478,7 +482,6 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
 
 struct sr_icmp_hdr icmp_send_reply_packet()
 {
-
 
     struct sr_icmp_hdr icmp_echo_reply;
         
