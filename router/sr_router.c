@@ -219,7 +219,6 @@ void ip_handlepacket(struct sr_instance *sr,
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
     /* SHOULD NOT BE HERE */
-    arp_boardcast(sr, r_iface, ip_hdr);
 
     struct sr_ip_hdr sr_ip_pkt;
     uint8_t *ip_packet;
@@ -291,7 +290,6 @@ void ip_handlepacket(struct sr_instance *sr,
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
 
         if (arp_entry == 0){
-
           /* IF miss APR cache, add the packet to ARP request queue */
           struct sr_arpreq *req;  
 
@@ -331,15 +329,14 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     
       /* Host is not reachable */
       if (req->times_sent >= 5) {
-
         /* Send ICMP host unreachable*/
-
         sr_arpreq_destroy(&sr->cache, req);
+
       } else {
           struct sr_if *s_interface;
 
           s_interface = sr_get_interface(sr, req->packets->iface);
-          /* arp_boardcast(sr, s_interface); */
+          arp_boardcast(sr, req);
           req->sent = time(0);
           req->times_sent ++;
         }
@@ -427,10 +424,14 @@ int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
     return 0;
 }
 
-void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface, struct sr_ip_hdr *ip_hdr)
+void arp_boardcast(struct sr_instance* sr, struct sr_arpreq *req)
 {
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr arp_boarcast;
+      struct sr_if *interface;
+
+      /* Get outgoing Interface */
+      interface = sr_get_interface(sr, req->packets->iface);
 
       /* set value of arp packet  */
       arp_boarcast.ar_hrd = htons(arp_hrd_ethernet);
@@ -438,15 +439,15 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface, struct sr_
       arp_boarcast.ar_hln = ETHER_ADDR_LEN;
       arp_boarcast.ar_pln = ARP_PLEN;
       arp_boarcast.ar_op = htons(arp_op_request);
-      arp_boarcast.ar_sip = s_interface->ip;
-      arp_boarcast.ar_tip = ip_hdr->ip_src;
+      arp_boarcast.ar_sip = interface->ip;
+      arp_boarcast.ar_tip = req-ip;
   
-      memcpy(arp_boarcast.ar_sha, s_interface->addr, ETHER_ADDR_LEN); 
+      memcpy(arp_boarcast.ar_sha, interface->addr, ETHER_ADDR_LEN); 
       memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
 
       /* Build the Ethernet Packet */
       struct sr_ethernet_hdr sr_ether_pkt;
-      memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
+      memcpy(sr_ether_pkt.ether_shost, interface->addr, ETHER_ADDR_LEN);
       memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN);
       sr_ether_pkt.ether_type = htons(ethertype_arp);
 
@@ -458,7 +459,6 @@ void arp_boardcast(struct sr_instance* sr, struct sr_if *s_interface, struct sr_
       memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
       memcpy(send_packet + sizeof(sr_ether_pkt), &arp_boarcast, sizeof(arp_boarcast));
 
-      print_hdrs(send_packet, eth_pkt_len);
       /* send the reply*/
       sr_send_packet(sr, send_packet, eth_pkt_len, s_interface->name);
 }
