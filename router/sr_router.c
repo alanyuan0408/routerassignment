@@ -238,6 +238,7 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(ip_hdr) - 5);
 
             /* Copy the packet over */
             uint8_t *cache_packet;
@@ -247,9 +248,7 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(cache_packet, ip_hdr, total_len);
             struct sr_arpreq *req;
 
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(ip_hdr) - 5);
-
-            print_hdrs(cache_packet, total_len);
+            
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
