@@ -236,9 +236,9 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Modify the ICMP reply packet */
             struct sr_icmp_hdr *icmp_hdr_ptr;
             icmp_hdr_ptr = icmp_header(ip_hdr);
-            icmp_hdr_ptr.icmp_type = htons(type_echo_reply);
-            icmp_hdr_ptr.icmp_code = htons(code_echo_reply);
-            icmp_hdr_ptr.icmp_sum = cksum(&icmp_hdr_ptr, sizeof(icmp_hdr_ptr));
+            icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
+            icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
+            icmp_hdr_ptr->icmp_sum = cksum(&icmp_hdr_ptr, sizeof(icmp_hdr_ptr));
 
             /* Copy the packet over */
             uint8_t *cache_packet;
@@ -248,7 +248,7 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(cache_packet, &(ip_hdr), total_len);
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_dst, cache_packet, total_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
