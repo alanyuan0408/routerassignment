@@ -246,7 +246,7 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(cache_packet + sizeof(struct sr_ip_hdr), &(icmp_echo_reply), sizeof(icmp_echo_reply));
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, cache_packet_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, cache_packet, cache_packet_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
