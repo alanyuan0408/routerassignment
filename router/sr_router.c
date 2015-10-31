@@ -216,7 +216,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* Test Broadcast */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
-    struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
     if (!ip_validpacket(packet, len))
       return;
@@ -228,15 +227,14 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             uint32_t dst;
-            struct sr_ip_hdr *return_ip;
-            return_ip = (struct sr_ip_hdr *)packet;
-            dst = return_ip->ip_src;
-            return_ip->ip_src = return_ip->ip_dst;
-            return_ip->ip_dst = dst;
+            struct sr_ip_hdr *ip_hdr = ip_header(packet);
+            dst = ip_hdr->ip_src;
+            ip_hdr->ip_src = ip_hdr->ip_dst;
+            ip_hdr->ip_dst = dst;
 
             /* Modify the ICMP reply packet */
             struct sr_icmp_hdr *icmp_hdr_ptr;
-            icmp_hdr_ptr = icmp_header(return_ip);
+            icmp_hdr_ptr = icmp_header(ip_hdr);
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
@@ -244,16 +242,16 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Copy the packet over */
             uint8_t *cache_packet;
             uint16_t total_len;
-            total_len = ip_len(return_ip);
+            total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, return_ip, total_len);
+            memcpy(cache_packet, ip_hdr, total_len);
             struct sr_arpreq *req;
 
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(return_ip) - 5);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(ip_hdr) - 5);
 
             print_hdrs(cache_packet, total_len);
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, total_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
