@@ -218,19 +218,6 @@ void ip_handlepacket(struct sr_instance *sr,
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
-    /* SHOULD NOT BE HERE */
-
-    struct sr_ip_hdr sr_ip_pkt;
-    uint8_t *ip_packet;
-    unsigned int ip_pkt_len;
-    ip_pkt_len = sizeof(sr_ip_pkt);
-
-    ip_packet = malloc(sizeof(sr_ip_pkt));
-    memcpy(ip_packet, &ip_hdr, sizeof(sr_ip_pkt));
-    struct sr_arpreq *req;  
-
-    req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, ip_pkt_len, interface);
-
     if (!ip_validpacket(packet, len))
       return;
 
