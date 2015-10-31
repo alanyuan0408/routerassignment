@@ -251,6 +251,8 @@ void ip_handlepacket(struct sr_instance *sr,
 
             icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(return_ip) - 5);
 
+            print_hdrs(cache_packet, total_len);
+
             req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
