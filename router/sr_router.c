@@ -231,10 +231,7 @@ void ip_handlepacket(struct sr_instance *sr,
             struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
 
             /* Modify IP reply header */
-            uint32_t *save_src;
-            save_src = ip_hdr->ip_src;
-            ip_hdr->ip_src = ip_hdr->ip_dst;
-            ip_hdr->ip_dst = save_src;
+            ip_hdr->ip_src = ip_hdr->ip_dst;ip_hdr->ip_dst = ip_hdr->ip_src;
 
             uint8_t *cache_packet;
             unsigned int cache_packet_len;
