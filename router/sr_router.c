@@ -216,6 +216,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
     /* Test Broadcast */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
+    struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
     if (!ip_validpacket(packet, len))
       return;
@@ -227,7 +228,6 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             uint32_t dst;
-            struct sr_ip_hdr *ip_hdr = ip_header(packet);
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
