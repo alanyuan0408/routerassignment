@@ -243,6 +243,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* Copy the packet over */
             uint8_t *cache_packet;
+            uint16_t total_len;
             total_len = ip_len(return_ip);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, return_ip, total_len);
