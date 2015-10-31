@@ -240,8 +240,7 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
 
-            icmp_len = ip_len(return_ip) - 5;
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(return_ip) - 5);
 
             /* Copy the packet over */
             uint8_t *cache_packet;
