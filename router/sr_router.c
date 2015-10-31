@@ -234,6 +234,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* Modify the ICMP reply packet */
             struct sr_icmp_hdr *icmp_hdr_ptr;
+            icmp_hdr_ptr = icmp_header(ip_hdr);
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
