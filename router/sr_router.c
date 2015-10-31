@@ -242,7 +242,7 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             /* send ICMP echo reply Packet */
-		        struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
+            struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -295,7 +295,7 @@ void ip_handlepacket(struct sr_instance *sr,
           /* IF miss APR cache, add the packet to ARP request queue */
           struct sr_arpreq *req;  
 
-          req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, lpmatch->interface);
+          req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, s_interface->name);
           sr_handle_arpreq(sr, req);
           free(ip_pkt);
         } else{
@@ -314,9 +314,6 @@ void ip_handlepacket(struct sr_instance *sr,
             packet_rqt = malloc(total_len);
             memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
             memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
-
-            /*sr_ether_pkt = (sr_ethernet_hdr_t *)malloc(total_len);
-            assert(sr_ether_pkt);*/ 
 
             /* forward the IP packet*/
             sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
@@ -491,42 +488,38 @@ struct sr_icmp_hdr icmp_send_reply_packet()
 {
 
 
-	struct sr_icmp_hdr icmp_echo_reply;
+    struct sr_icmp_hdr icmp_echo_reply;
         
-  	icmp_echo_reply.icmp_type = htons(type_echo_reply);
-  	icmp_echo_reply.icmp_code = htons(code_echo_reply);
-	icmp_echo_reply.icmp_sum = cksum(&icmp_echo_reply, sizeof(icmp_echo_reply));
+    icmp_echo_reply.icmp_type = htons(type_echo_reply);
+    icmp_echo_reply.icmp_code = htons(code_echo_reply);
+    icmp_echo_reply.icmp_sum = cksum(&icmp_echo_reply, sizeof(icmp_echo_reply));
 
-	return icmp_echo_reply;
+    return icmp_echo_reply;
 }
 
 struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
 
-  	struct sr_icmp_t3_hdr *icmp_error_reply;
+    struct sr_icmp_t3_hdr *icmp_error_reply;
 
     icmp_error_reply->icmp_type = htons(type_dst_unreach);
-  	switch (code_num)
-  	{
-  		case 0:
-  			icmp_error_reply->icmp_code = htons(code_net_unreach);
-  			break;
-  		case 1:
-  			icmp_error_reply->icmp_code = htons(code_port_unreach);
-  			break;
-  		case 3:
-  			icmp_error_reply->icmp_code = htons(code_host_unreach);
-  			break;
-  	}
-  	
-  	icmp_error_reply->next_mtu = htons(MTU);
+    switch (code_num)
+    {
+      case 0:
+        icmp_error_reply->icmp_code = htons(code_net_unreach);
+        break;
+      case 1:
+        icmp_error_reply->icmp_code = htons(code_port_unreach);
+        break;
+      case 3:
+        icmp_error_reply->icmp_code = htons(code_host_unreach);
+        break;
+    }
+    
+    icmp_error_reply->next_mtu = htons(MTU);
 
     /* Encap the received ip header and the first 8 bytes */
     memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
 
-  	return icmp_error_reply;
+    return icmp_error_reply;
 }
-
-
-
-
