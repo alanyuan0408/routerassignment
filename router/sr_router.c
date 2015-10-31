@@ -228,6 +228,7 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
             uint32_t dst;
+            struct sr_ip_hdr *return_ip;
             return_ip = (struct sr_ip_hdr *)packet;
             dst = return_ip->ip_src;
             return_ip->ip_src = return_ip->ip_dst;
