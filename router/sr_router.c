@@ -241,7 +241,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet_len = sizeof(icmp_echo_reply) + sizeof(struct sr_ip_hdr);
             cache_packet = malloc(sizeof(icmp_echo_reply));
             memcpy(cache_packet, &(ip_hdr), sizeof(struct sr_ip_hdr));
-            memcpy(cache_packet + sizeof(sr_ip_hdr), &(icmp_echo_reply), sizeof(icmp_echo_reply));
+            memcpy(cache_packet + sizeof(struct sr_ip_hdr), &(icmp_echo_reply), sizeof(icmp_echo_reply));
             struct sr_arpreq *req;
 
             req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, cache_packet_len, interface);
