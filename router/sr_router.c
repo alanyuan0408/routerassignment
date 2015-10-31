@@ -250,7 +250,7 @@ void ip_handlepacket(struct sr_instance *sr,
             struct sr_arpreq *req;
 
             uint16_t icmp_len;
-            icmp_len = (total_len)/4 - ICMP_IP_HDR_LEN;
+            icmp_len = total_len - ICMP_IP_HDR_LEN;
             fprintf(stderr, "%d.\n", icmp_len);
 
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
