@@ -237,18 +237,20 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Modify the ICMP reply packet */
             struct sr_icmp_hdr *icmp_hdr_ptr;
             icmp_hdr_ptr = icmp_header(return_ip);
+            icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
 
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(return_ip) - 5);
-
             /* Copy the packet over */
             uint8_t *cache_packet;
-            cache_packet = malloc(sizeof(return_ip));
-            memcpy(cache_packet, return_ip, sizeof(return_ip));
+            total_len = ip_len(return_ip);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, return_ip, total_len);
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, sizeof(return_ip), interface);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ip_len(return_ip) - 5);
+
+            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
