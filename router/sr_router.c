@@ -243,14 +243,14 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Copy the packet over */
             uint8_t *cache_packet;
             uint16_t total_len;
+
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, total_len);
             struct sr_arpreq *req;
 
             uint16_t icmp_len;
-            icmp_len = total_len - ICMP_IP_HDR_LEN;
-            fprintf(stderr, "%d.\n", icmp_len);
+            icmp_len = (total_len)/4 - ICMP_IP_HDR_LEN;
 
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
             icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, 4);
