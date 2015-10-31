@@ -437,7 +437,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_arpreq *req)
       arp_boarcast.ar_pln = ARP_PLEN;
       arp_boarcast.ar_op = htons(arp_op_request);
       arp_boarcast.ar_sip = interface->ip;
-      arp_boarcast.ar_tip = req-ip;
+      arp_boarcast.ar_tip = req->ip;
   
       memcpy(arp_boarcast.ar_sha, interface->addr, ETHER_ADDR_LEN); 
       memset(arp_boarcast.ar_tha, 255, ETHER_ADDR_LEN);
@@ -457,7 +457,7 @@ void arp_boardcast(struct sr_instance* sr, struct sr_arpreq *req)
       memcpy(send_packet + sizeof(sr_ether_pkt), &arp_boarcast, sizeof(arp_boarcast));
 
       /* send the reply*/
-      sr_send_packet(sr, send_packet, eth_pkt_len, s_interface->name);
+      sr_send_packet(sr, send_packet, eth_pkt_len, interface->name);
 }
 
 struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
