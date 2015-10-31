@@ -175,7 +175,6 @@ void arp_handlepacket(struct sr_instance *sr,
               packet_sent = malloc(total_len);
               memcpy(packet_sent, &sr_ether_hdr, sizeof(sr_ether_hdr));
               memcpy(packet_sent + sizeof(sr_ether_hdr), pkt_wait->buf, pkt_wait->len);
-              print_hdrs(packet_sent, total_len);
 
               /* forward the IP packet*/
               sr_send_packet(sr, packet_sent, total_len, s_interface->name);
