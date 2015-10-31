@@ -5,6 +5,14 @@
 #include "sr_utils.h"
 
 /*-------------------------------------
+* Length Utility Functions
+-------------------------------------*/
+uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr){
+
+  return ip_hdr->ip_hl *4;
+}
+
+/*-------------------------------------
 * Utility Methods to Process ARP packets
 *-------------------------------------*/
 
@@ -14,6 +22,13 @@ struct sr_arp_hdr *arp_header(uint8_t *buf){
 
 struct sr_ip_hdr *ip_header(uint8_t *buf){
   return (struct sr_ip_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
+}
+
+struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr){
+  
+  uint8_t *icmp_header;
+  icmp_hdr = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
+  return (struct sr_icmp_hdr *)icmp_header;
 }
 
 

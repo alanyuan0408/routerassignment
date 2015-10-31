@@ -227,26 +227,28 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
-            /* send ICMP echo reply Packet */
-            struct sr_icmp_hdr icmp_echo_reply = icmp_send_reply_packet();
-
             /* Modify IP reply header */
             uint32_t dst;
-
             dst = ip_hdr->ip_src;
-
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
 
+            /* Modify the ICMP reply packet */
+            struct sr_icmp_hdr *icmp_hdr_ptr;
+            icmp_hdr_ptr = icmp_header(ip_hdr);
+            icmp_hdr_ptr.icmp_type = htons(type_echo_reply);
+            icmp_hdr_ptr.icmp_code = htons(code_echo_reply);
+            icmp_hdr_ptr.icmp_sum = cksum(&icmp_hdr_ptr, sizeof(icmp_hdr_ptr));
+
+            /* Copy the packet over */
             uint8_t *cache_packet;
-            unsigned int cache_packet_len;
-            cache_packet_len = sizeof(icmp_echo_reply) + sizeof(struct sr_ip_hdr);
-            cache_packet = malloc(sizeof(icmp_echo_reply));
-            memcpy(cache_packet, &(ip_hdr), sizeof(struct sr_ip_hdr));
-            memcpy(cache_packet + sizeof(struct sr_ip_hdr), &(icmp_echo_reply), sizeof(icmp_echo_reply));
+            unsigned int total_len;
+            total_len = sizeof(ip_hdr);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, &(ip_hdr), total_len);
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, cache_packet, cache_packet_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), ip_dst, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -489,17 +491,6 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
     return lpmatch;
 }
 
-struct sr_icmp_hdr icmp_send_reply_packet()
-{
-
-    struct sr_icmp_hdr icmp_echo_reply;
-        
-    icmp_echo_reply.icmp_type = htons(type_echo_reply);
-    icmp_echo_reply.icmp_code = htons(code_echo_reply);
-    icmp_echo_reply.icmp_sum = cksum(&icmp_echo_reply, sizeof(icmp_echo_reply));
-
-    return icmp_echo_reply;
-}
 
 struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
