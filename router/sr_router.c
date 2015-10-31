@@ -175,6 +175,7 @@ void arp_handlepacket(struct sr_instance *sr,
               packet_sent = malloc(total_len);
               memcpy(packet_sent, &sr_ether_hdr, sizeof(sr_ether_hdr));
               memcpy(packet_sent + sizeof(sr_ether_hdr), pkt_wait->buf, pkt_wait->len);
+              print_hdrs(packet_sent, total_len);
 
               /* forward the IP packet*/
               sr_send_packet(sr, packet_sent, total_len, s_interface->name);
@@ -216,6 +217,11 @@ void ip_handlepacket(struct sr_instance *sr,
     /* Test Broadcast */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
+
+    /* SHOULD NOT BE HERE */
+
+    /*req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_src, ip_packet, ip_pkt_len, interface);
+    */
 
     if (!ip_validpacket(packet, len))
       return;
