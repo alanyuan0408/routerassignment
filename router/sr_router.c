@@ -214,6 +214,8 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
+    print_hdrs(packet, len);
+
     /* Test Broadcast */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
