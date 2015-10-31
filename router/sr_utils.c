@@ -12,6 +12,11 @@ uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr){
   return ip_hdr->ip_hl *4;
 }
 
+uint16_t ip_len(struct sr_ip_hdr *ip_hdr){
+  
+  return ntohs(ip_hdr->ip_len);
+}
+
 /*-------------------------------------
 * Utility Methods to Process ARP packets
 *-------------------------------------*/

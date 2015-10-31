@@ -239,14 +239,14 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr = icmp_header(return_ip);
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, sizeof(icmp_hdr_ptr));
+
+            icmp_len = ip_len(return_ip) - 5;
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
 
             /* Copy the packet over */
             uint8_t *cache_packet;
-            unsigned int total_len;
-            total_len = sizeof(return_ip);
-            cache_packet = malloc(total_len);
-            memcpy(cache_packet, return_ip, total_len);
+            cache_packet = malloc(sizeof(return_ip));
+            memcpy(cache_packet, return_ip, sizeof(return_ip));
             struct sr_arpreq *req;
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
