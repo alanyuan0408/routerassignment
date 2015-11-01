@@ -263,7 +263,7 @@ void ip_handlepacket(struct sr_instance *sr,
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
             /* Modify the ICMP error packet */
-	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,3);
 
             /* Copy the packet over */
             uint8_t *cache_packet;
@@ -307,14 +307,14 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If cannot find dst_ip in routing table, send ICMP host unreachable */
         if (lpmatch == 0) {
         
-        /* Send ICMP host unreachable */
+        /* Send ICMP net unreachable */
 
         uint32_t dst;
 	dst = ip_hdr->ip_src;
 	ip_hdr->ip_src = ip_hdr->ip_dst;
 	ip_hdr->ip_dst = dst;
 	/* Modify the ICMP error packet */
-	sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,3);
+	sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,0);
 
 	/* Copy the packet over */
 	uint8_t *cache_packet;
@@ -380,7 +380,31 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     
       /* Host is not reachable */
       if (req->times_sent >= 5) {
+
+	struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
         /* Send ICMP host unreachable*/
+
+            uint32_t dst;
+            dst = ip_hdr->ip_src;
+            ip_hdr->ip_src = ip_hdr->ip_dst;
+            ip_hdr->ip_dst = dst;
+            /* Modify the ICMP error packet */
+	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+
+            /* Copy the packet over */
+            uint8_t *cache_packet;
+            uint16_t total_len;
+
+            total_len = ip_len(ip_hdr);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, ip_hdr, total_len);
+            struct sr_arpreq *req;
+
+            icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
+            icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
+
+
+
         sr_arpreq_destroy(&sr->cache, req);
 
       } else {
