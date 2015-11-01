@@ -228,14 +228,13 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
-            uint32_t dst;
-            dst = ip_hdr->ip_src;
+            uint32_t dst_ip;
+            dst_ip = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
-            ip_hdr->ip_dst = dst;
+            ip_hdr->ip_dst = dst_ip;
 
             /* Modify the ICMP reply packet */
-            sr_icmp_hdr_t *icmp_hdr_ptr;
-            icmp_hdr_ptr = icmp_header(ip_hdr);
+            sr_icmp_hdr_t *icmp_hdr_ptr = icmp_header(ip_hdr);
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
@@ -252,7 +251,7 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
             icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ICMP_ECHO_REPLY_LEN);
 
-            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
+            req = sr_arpcache_queuereq(&(sr->cache), dst_ip, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -266,7 +265,7 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_ttl == 0) {
               
           /* Send ICMP time exceeded */
-
+          
           return;
         }
 
@@ -283,10 +282,10 @@ void ip_handlepacket(struct sr_instance *sr,
 
         lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
         
-        /* If cannot find dst_ip in routing table, send ICMP host unreachable */
+        /* If cannot find destination IP in routing table, send ICMP net unreachable */
         if (lpmatch == 0) {
         
-        /* Send ICMP host unreachable */
+        /* Send ICMP net unreachable */
 
         return;
         }
@@ -337,7 +336,9 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     
       /* Host is not reachable */
       if (req->times_sent >= 5) {
+
         /* Send ICMP host unreachable*/
+
         sr_arpreq_destroy(&sr->cache, req);
 
       } else {
