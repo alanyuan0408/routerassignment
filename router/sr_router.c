@@ -28,6 +28,7 @@
 *----------------------------------------------------------------------*/
 #define ICMP_ECHO 0
 #define ICMP_IP_HDR_LEN 5
+#define ICMP_ECHO_REPLY_LEN 56
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -216,7 +217,6 @@ void ip_handlepacket(struct sr_instance *sr,
     printf("** Recieved IP packet\n");
 
     /* Test Broadcast */
-    struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
 
     if (!ip_validpacket(packet, len))
@@ -234,7 +234,7 @@ void ip_handlepacket(struct sr_instance *sr,
             ip_hdr->ip_dst = dst;
 
             /* Modify the ICMP reply packet */
-            struct sr_icmp_hdr *icmp_hdr_ptr;
+            sr_icmp_hdr_t *icmp_hdr_ptr;
             icmp_hdr_ptr = icmp_header(ip_hdr);
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
@@ -250,7 +250,7 @@ void ip_handlepacket(struct sr_instance *sr,
             struct sr_arpreq *req;
 
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
-            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, 48);
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, ICMP_ECHO_REPLY_LEN);
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
