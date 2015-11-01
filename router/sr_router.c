@@ -377,7 +377,7 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
     struct sr_ip_hdr * ip_hdr = ip_header(packet);
     uint16_t c_cksum = 0;
     uint16_t r_cksum = ip_hdr->ip_sum;
-    unsigned int hdr_len = ip_hdr->ip_hl * 4;
+    unsigned int hdr_len = ip_hl(ip_hdr);
 
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + hdr_len){
@@ -397,19 +397,14 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
 int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
 
     /* Initialization */
-    uint8_t *icmp_hdr_ptr;
-    sr_icmp_hdr_t *icmp_hdr;
+    sr_icmp_hdr_t *icmp_hdr = icmp_header(ip_hdr);
     uint16_t c_cksum;
     uint16_t r_cksum;
-
-    /* Location ICMP header */
-    icmp_hdr_ptr = (uint8_t *)(ip_hdr)+(ip_hdr->ip_hl * 4);
-    icmp_hdr = (struct sr_icmp_hdr *)icmp_hdr_ptr;
 
     /* Check cksum */
     r_cksum = icmp_hdr->icmp_sum;
     icmp_hdr->icmp_sum = 0;
-    c_cksum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len)-(ip_hdr->ip_hl * 4));
+    c_cksum = cksum(icmp_hdr, ip_len(ip_hdr)-ip_hl(ip_hdr));
     if(c_cksum != r_cksum){
       return 0;
     }

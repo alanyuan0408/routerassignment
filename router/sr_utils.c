@@ -7,7 +7,7 @@
 /*-------------------------------------
 * Length Utility Functions
 -------------------------------------*/
-uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr){
+uint8_t ip_hl(struct sr_ip_hdr *ip_hdr){
 
   return ip_hdr->ip_hl *4;
 }
@@ -33,7 +33,7 @@ struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr){
   
   uint8_t *icmp_header;
   
-  icmp_header = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
+  icmp_header = (uint8_t *)(ip_hdr) + ip_hl(ip_hdr);
   return (struct sr_icmp_hdr *)icmp_header;
 }
 
