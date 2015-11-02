@@ -29,6 +29,7 @@
 #define ICMP_ECHO 0
 #define ICMP_IP_HDR_LEN 5
 #define ICMP_ECHO_REPLY_LEN 56
+#define ICMP_TYPE3_LEN 36
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -259,12 +260,13 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* Send ICMP port unreachable */
 
-	    uint32_t dst;
+	          uint32_t dst;
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
+
             /* Modify the ICMP error packet */
-	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,3);
+	          sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
 
             /* Copy the packet over */
             uint8_t *cache_packet;
@@ -272,7 +274,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
 
             struct sr_arpreq *req;
@@ -286,7 +288,27 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If TTL reaches 0, send  ICMP time exceeded and return */
         if (ip_hdr->ip_ttl == 0) {
               
-          /* Send ICMP time exceeded */
+            /* Send ICMP time exceeded */
+            uint32_t dst;
+            dst = ip_hdr->ip_src;
+            ip_hdr->ip_src = ip_hdr->ip_dst;
+            ip_hdr->ip_dst = dst;
+            
+            /* Modify the ICMP error packet */
+            sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
+
+            /* Copy the packet over */
+            uint8_t *cache_packet;
+            uint16_t total_len;
+
+            total_len = ip_len(ip_hdr);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+
+            struct sr_arpreq *req;
+
+            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);  
           
           return;
         }
@@ -313,31 +335,20 @@ void ip_handlepacket(struct sr_instance *sr,
       	dst = ip_hdr->ip_src;
       	ip_hdr->ip_src = r_interface->ip;
       	ip_hdr->ip_dst = dst;
+
       	/* Modify the ICMP error packet */
-      	sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,0);
+      	sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
 
       	/* Copy the packet over */
       	uint8_t *cache_packet;
       	uint16_t total_len;
 
-
-	total_len = ip_len(ip_hdr);
-	cache_packet = malloc(total_len);
-	memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
-	memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
-	struct sr_arpreq *req;
-
-	icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-	req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	  
-
       	total_len = ip_len(ip_hdr);
       	cache_packet = malloc(total_len);
-      	memcpy(cache_packet, ip_hdr, total_len);
+      	memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+      	memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+
       	struct sr_arpreq *req;
-
-      	icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-      	icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
-
 
       	req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	  
 
@@ -391,33 +402,21 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
-
-	struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
-
-
         /* Send ICMP host unreachable*/
-	       struct sr_ip_hdr *ip_hdr = ip_header(req->packets); /* whether & */
+	      struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
+        struct sr_rt *lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
+
+        if(lpmatch != 0){
+          return;
+        }
 
          uint32_t dst;
          dst = ip_hdr->ip_src;
          ip_hdr->ip_src = ip_hdr->ip_dst;
          ip_hdr->ip_dst = dst;
 
-            /* Modify the ICMP error packet */
-	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
-
-            total_len = ip_len(ip_hdr);
-            cache_packet = malloc(total_len);
-            memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
-            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
-
-            struct sr_arpreq *req;
-
-            icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-            icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
-	    req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	
-
-
+         /* Modify the ICMP error packet */
+	       sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
 
          /* Copy the packet over */
          uint8_t *cache_packet;
@@ -425,13 +424,13 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 
          total_len = ip_len(ip_hdr);
          cache_packet = malloc(total_len);
-         memcpy(cache_packet, ip_hdr, total_len);
+         memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+         memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+
          struct sr_arpreq *req;
 
-         icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-         icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
-
-        sr_arpreq_destroy(&sr->cache, req);
+         req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, lpmatch->interface); 
+         sr_arpreq_destroy(&sr->cache, req);
 
       } else {
           struct sr_if *s_interface;
@@ -583,7 +582,6 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
     return lpmatch;
 }
 
-
 struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
 
@@ -604,9 +602,37 @@ struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code
     }
     
     icmp_error_reply->next_mtu = htons(MTU);
+    icmp_error_reply->icmp_sum = 0;
+    icmp_error_reply->unused = 0;
 
     /* Encap the received ip header and the first 8 bytes */
     memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+
+    icmp_error_reply->icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
+
+    return icmp_error_reply;
+}
+
+struct sr_icmp_t3_hdr *icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num)
+{
+
+    struct sr_icmp_t3_hdr *icmp_error_reply;
+
+    icmp_error_reply->icmp_type = htons(type_time_exceeded);
+    switch (code_num)
+    {
+      case 0:
+        icmp_error_reply->icmp_code = htons(code_ttl_expired);
+        break;
+    }
+    
+    icmp_error_reply->next_mtu = htons(MTU);
+    icmp_error_reply->icmp_sum = 0;
+    icmp_error_reply->unused = 0;
+
+    /* Encap the received ip header and the first 8 bytes */
+    memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+    icmp_error_reply->icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
 
     return icmp_error_reply;
 }

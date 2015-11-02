@@ -80,6 +80,8 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest);
 void arp_boardcast(struct sr_instance* sr, struct sr_arpreq *req);
 struct sr_icmp_hdr icmp_send_reply_packet();
 struct sr_icmp_t3_hdr* icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num);
+struct sr_icmp_t3_hdr *icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num);
+
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
