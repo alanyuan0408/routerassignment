@@ -403,6 +403,9 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
          ip_hdr->ip_src = ip_hdr->ip_dst;
          ip_hdr->ip_dst = dst;
 
+            /* Modify the ICMP error packet */
+	    sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
@@ -414,8 +417,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
 	    req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	
 
-         /* Modify the ICMP error packet */
-	       sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+
 
          /* Copy the packet over */
          uint8_t *cache_packet;
