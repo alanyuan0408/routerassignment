@@ -255,6 +255,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
+
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
             /* Send ICMP port unreachable */
@@ -272,11 +273,10 @@ void ip_handlepacket(struct sr_instance *sr,
 
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, ip_hdr, total_len);
-            struct sr_arpreq *req;
+            memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
 
-            icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-            icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
+            struct sr_arpreq *req;
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	    
                     
@@ -323,12 +323,11 @@ void ip_handlepacket(struct sr_instance *sr,
 
 	total_len = ip_len(ip_hdr);
 	cache_packet = malloc(total_len);
-	memcpy(cache_packet, ip_hdr, total_len);
+	memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+	memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
 	struct sr_arpreq *req;
 
 	icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
-	icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
-
 	req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	  
 
 
@@ -382,6 +381,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
+
 	struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
         /* Send ICMP host unreachable*/
 
@@ -398,12 +398,14 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, ip_hdr, total_len);
+            memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+
             struct sr_arpreq *req;
 
             icmp_error_packet = icmp_header((struct sr_ip_hdr *)cache_packet);
             icmp_error_packet->icmp_sum = cksum(icmp_error_packet, ICMP_ECHO_REPLY_LEN);
-
+	    req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	
 
 
         sr_arpreq_destroy(&sr->cache, req);
