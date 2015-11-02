@@ -218,7 +218,6 @@ void ip_handlepacket(struct sr_instance *sr,
     printf("** Recieved IP packet\n");
 
     /* Test Broadcast */
-    struct sr_if *r_iface = sr_get_interface(sr,interface);
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
     struct sr_if *r_interface = sr_get_interface(sr,interface);
 
@@ -238,8 +237,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* Modify the ICMP reply packet */
             sr_icmp_hdr_t *icmp_hdr_ptr = icmp_header(ip_hdr);
-            struct sr_icmp_hdr *icmp_hdr_ptr;
-            icmp_hdr_ptr = icmp_header(ip_hdr);
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
