@@ -370,7 +370,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
           req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, s_interface->name);
           sr_handle_arpreq(sr, req);
-          free(ip_pkt);
         } else{
 
             /* Hit ARP cache, send out the packet right away */
