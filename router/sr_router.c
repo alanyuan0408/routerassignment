@@ -223,7 +223,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
     if (!ip_validpacket(packet, len))
       return;
-    printf("** For you\n");
+    print_hdrs(packet, len);
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
