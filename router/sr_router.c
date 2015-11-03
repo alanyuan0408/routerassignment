@@ -286,6 +286,9 @@ void ip_handlepacket(struct sr_instance *sr,
                     
         }
     } else {
+
+        printf("** Not for you\n");
+
         ip_hdr->ip_ttl --;
 
         /* If TTL reaches 0, send  ICMP time exceeded and return */
