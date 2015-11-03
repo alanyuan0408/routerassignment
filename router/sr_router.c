@@ -260,6 +260,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
+            printf("** For you\n");
             /* Send ICMP port unreachable */
 
 	          uint32_t dst;
