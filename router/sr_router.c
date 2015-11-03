@@ -608,7 +608,7 @@ struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code
     icmp_error_reply->unused = 0;
 
     /* Encap the received ip header and the first 8 bytes */
-    memcpy(icmp_error_reply->data, &ip_hdr, ICMP_DATA_SIZE);
+    memcpy(icmp_error_reply->data, ip_hdr->data, ICMP_DATA_SIZE);
 
     icmp_error_reply->icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
 
