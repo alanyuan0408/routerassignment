@@ -223,14 +223,13 @@ void ip_handlepacket(struct sr_instance *sr,
 
     if (!ip_validpacket(packet, len))
       return;
+    printf("** For you\n");
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
     
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
-
-            printf("** For you\n");
 
             uint32_t dst;
             dst = ip_hdr->ip_src;
