@@ -217,8 +217,6 @@ void ip_handlepacket(struct sr_instance *sr,
 { 
     printf("** Recieved IP packet\n");
 
-    print_hdrs(packet, len);
-
     /* Test Broadcast */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
     struct sr_if *r_interface = sr_get_interface(sr,interface);
@@ -231,6 +229,8 @@ void ip_handlepacket(struct sr_instance *sr,
     
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
+
+            printf("** For you\n");
 
             uint32_t dst;
             dst = ip_hdr->ip_src;
@@ -262,7 +262,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
-            printf("** For you\n");
             /* Send ICMP port unreachable */
 
 	          uint32_t dst;
