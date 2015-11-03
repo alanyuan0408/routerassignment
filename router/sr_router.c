@@ -240,7 +240,7 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
-	          uint16_t icmp_len =ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
+	          uint16_t icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
             /* Copy the packet over */
             uint8_t *cache_packet;
             uint16_t total_len;
@@ -257,7 +257,6 @@ void ip_handlepacket(struct sr_instance *sr,
             ip_hdr_csum->ip_sum = cksum(ip_hdr_csum, sizeof(sr_ip_hdr_t));
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
-
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
@@ -278,7 +277,7 @@ void ip_handlepacket(struct sr_instance *sr,
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+            memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
 
             struct sr_arpreq *req;
 
