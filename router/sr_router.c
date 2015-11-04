@@ -290,6 +290,8 @@ void ip_handlepacket(struct sr_instance *sr,
             struct sr_ip_hdr *ip_hdr_csum = (struct sr_ip_hdr *)cache_packet;
             ip_hdr_csum->ip_sum = cksum(ip_hdr_csum, sizeof(sr_ip_hdr_t));
 
+            print_hdr_ip(cache_packet);
+
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
