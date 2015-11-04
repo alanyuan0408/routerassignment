@@ -189,7 +189,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr,interface);
 
-    if (type = ethertype_arp){ 
+    if (type == ethertype_arp){ 
         /* Build the Ethernet Packet */
         memcpy(sr_ether_pkt.ether_dhost, rt->addr, ETHER_ADDR_LEN);
         memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
