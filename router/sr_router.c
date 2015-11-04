@@ -291,8 +291,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
         /* If TTL reaches 0, send  ICMP time exceeded and return */
         if (ip_hdr->ip_ttl == 0) {
-
-          printf("** Recieved IP packet\n");
               
             /* Send ICMP time exceeded */
             uint32_t dst;
@@ -303,6 +301,8 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Modify the ICMP error packet */
             sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
 
+            printf("** Recieved IP packet\n");
+
             /* Copy the packet over */
             uint8_t *cache_packet;
             uint16_t total_len;
@@ -310,7 +310,7 @@ void ip_handlepacket(struct sr_instance *sr,
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet, &icmp_error_packet, sizeof(icmp_error_packet));
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, &icmp_error_packet, sizeof(icmp_error_packet));
 
             struct sr_arpreq *req;
 
