@@ -253,7 +253,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
     if (!ip_validpacket(packet, len))
       return;
-    print_hdrs(packet, len);
 
     /* Check interface IP to determine whether this IP packet is for me */
     if (sr_packet_is_for_me(sr, ip_hdr->ip_dst)) {
@@ -420,7 +419,6 @@ void ip_handlepacket(struct sr_instance *sr,
             packet_rqt = malloc(total_len);
             memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
             memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
-            print_hdrs(packet_rqt, total_len); 
 
             /* forward the IP packet*/
             sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
