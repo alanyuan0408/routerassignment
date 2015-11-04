@@ -199,6 +199,10 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
             packet, sizeof(struct sr_arp_hdr));
 
+        /* send the reply*/
+        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+        free(send_packet);
+
     } else if (type == ethertype_ip){
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
@@ -214,11 +218,10 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
         memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
             packet, len);
+
+        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
     }
 
-    /* send the reply*/
-    sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
-    free(send_packet);
 }
 
 void build_arp_reply(struct sr_instance *sr, struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface)
