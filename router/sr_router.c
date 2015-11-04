@@ -158,7 +158,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
                 pkt_wait = pkt_wait->next;
                 /* Free the temp_arp Packet */
-                temp_arp = pkt_wait->next;
+                temp_arp = pkt_wait;
                 free(temp_arp);
               }
           } 
