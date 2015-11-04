@@ -205,9 +205,8 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
         free(send_packet);
 
-    } else if (type == ethertype_ip){
+    } else{
 
-        printf("** GOT HERE\n");
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, rt->dest.s_addr);
 
