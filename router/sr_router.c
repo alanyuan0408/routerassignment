@@ -199,6 +199,14 @@ void sr_add_ethernet_send(struct sr_instance *sr,
             packet, sizeof(struct sr_arp_hdr));
 
     } else if (type == ethertype_ip){
+        /* Check ARP cache */
+        arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
+
+        /* Construct the Ethernet Packet */
+        sr_ether_pkt.ether_type = htons(type);
+        memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+        memcpy(sr_ether_pkt.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+
         /* Copy the Packet into the sender buf */
         eth_pkt_len = len + sizeof(struct sr_ethernet_hdr);
         send_packet = malloc(len);
