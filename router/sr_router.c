@@ -177,6 +177,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     struct sr_arpentry *arp_entry;
 
     rt = longest_prefix_matching(sr, dip);
+    sr_print_routing_entry(rt);
     r_iface = sr_get_interface(sr, rt->interface);
 
     printf("** !\n");
