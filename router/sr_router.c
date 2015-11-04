@@ -84,7 +84,7 @@ void sr_handlepacket(struct sr_instance *sr,
     assert(packet);
     assert(interface);
 
-    printf("*** -> Received packet of length %d \n",len);
+    printf("** -> Received packet of length %d \n",len);
    
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr)){
@@ -134,41 +134,33 @@ void arp_handlepacket(struct sr_instance *sr,
 
         struct sr_arpentry *arp_entry;
         struct sr_arpreq *arp_req;
+        struct sr_arpreq *temp_arp;
 
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
         if (arp_entry != 0){
-          free(arp_entry);
+            free(arp_entry);
         }else {
-          arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
+            arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
 
-          /* Check ARP request queue, if not empty send out packets on it*/
-          if (arp_req != 0) {
-            struct sr_packet *pkt_wait = arp_req->packets;
+            /* Check ARP request queue, if not empty send out packets on it*/
+            if (arp_req != 0) {
+                struct sr_packet *pkt_wait = arp_req->packets;
 
-            while (pkt_wait != 0) {
+                while (pkt_wait != 0) {
 
-              /* Send the packets out */
-              struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
-              struct sr_ethernet_hdr sr_ether_hdr;
+                    /* Send the packets out */
+                    struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
+                    struct sr_ethernet_hdr sr_ether_hdr;
 
-              memcpy(sr_ether_hdr.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
-              memcpy(sr_ether_hdr.ether_shost, s_interface->addr, ETHER_ADDR_LEN); /*hardware address of the outgoing interface*/
-              sr_ether_hdr.ether_type = htons(ethertype_ip);
+                    sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
+                        s_interface->ip, ethertype_ip);
 
-              uint8_t *packet_sent;
-              unsigned int total_len = pkt_wait->len + sizeof(struct sr_ethernet_hdr);
-              packet_sent = malloc(total_len);
-              memcpy(packet_sent, &sr_ether_hdr, sizeof(sr_ether_hdr));
-              memcpy(packet_sent + sizeof(sr_ether_hdr), pkt_wait->buf, pkt_wait->len);
-              print_hdrs(packet_sent, total_len);
-
-              /* forward the IP packet*/
-              sr_send_packet(sr, packet_sent, total_len, s_interface->name);
-              free(packet_sent);
-
-              pkt_wait = pkt_wait->next;
-            }
+                pkt_wait = pkt_wait->next;
+                /* Free the temp_arp Packet */
+                temp_arp = pkt_wait->next;
+                free(temp_arp);
+              }
           } 
         }   
     }
@@ -186,11 +178,9 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     struct sr_arp_hdr * arp_pkt;
     uint8_t *send_packet;
     unsigned int eth_pkt_len;
-    struct sr_arpentry *arp_entry;
 
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr, rt->interface);
-    arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
 
     if (type == ethertype_arp){ 
         arp_pkt = (struct sr_arp_hdr *)packet;
@@ -210,12 +200,15 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         send_packet = malloc(eth_pkt_len);
         memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
         memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
-          packet, sizeof(struct sr_arp_hdr));
+            packet, sizeof(struct sr_arp_hdr));
 
-        /* send the reply*/
-        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
-        free(send_packet);
+    } else if (type == ethertype_arp){
+
     }
+
+    /* send the reply*/
+    sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+    free(send_packet);
 }
 
 void build_arp_reply(struct sr_instance *sr, struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface)
