@@ -301,8 +301,6 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Modify the ICMP error packet */
             sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
 
-            printf("** Recieved IP packet\n");
-
             /* Copy the packet over */
             uint8_t *cache_packet;
             uint16_t total_len;
@@ -625,6 +623,8 @@ struct sr_icmp_t3_hdr *icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int cod
 {
 
     struct sr_icmp_t3_hdr *icmp_error_reply;
+
+    icmp_error_reply = icmp_header(ip_hdr);
 
     icmp_error_reply->icmp_type = htons(type_time_exceeded);
     switch (code_num)
