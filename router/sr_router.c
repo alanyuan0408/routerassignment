@@ -176,10 +176,10 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     unsigned int eth_pkt_len;
     struct sr_arpentry *arp_entry;
 
-    printf("** !!!!\n");
-
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr, rt->interface);
+
+    printf("** !\n");
 
     if (type == ethertype_arp){ 
         arp_pkt = (struct sr_arp_hdr *)packet;
