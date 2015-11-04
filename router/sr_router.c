@@ -156,9 +156,9 @@ void arp_handlepacket(struct sr_instance *sr,
                     sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
                         s_interface->ip, ethertype_ip);
 
-                pkt_wait = pkt_wait->next;
                 /* Free the temp_arp Packet */
                 temp_arp = pkt_wait;
+                pkt_wait = pkt_wait->next;
                 free(temp_arp);
               }
           } 
