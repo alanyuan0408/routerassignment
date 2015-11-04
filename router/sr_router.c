@@ -183,15 +183,25 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     struct sr_rt *rt;
     struct sr_if *r_iface;
     struct sr_ethernet_hdr sr_ether_pkt;
+    struct sr_arp_hdr * arp_pkt;
     uint8_t *send_packet;
     unsigned int eth_pkt_len;
+    struct sr_arpentry *arp_entry;
 
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr, rt->interface);
+    arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
 
     if (type == ethertype_arp){ 
-        /* Build the Ethernet Packet */
-        memcpy(sr_ether_pkt.ether_dhost, rt->addr, ETHER_ADDR_LEN);
+        arp_pkt = (struct sr_arp_hdr *)packet;
+
+        /* Broadcast Request */
+        if (arp_pkt->ar_op == htons(arp_op_request))
+            memset(sr_ether_pkt.ether_dhost, 255, ETHER_ADDR_LEN);
+        /* Build reply packet */
+        else if (arp_pkt->ar_op == htons(arp_op_reply))
+            memcpy(sr_ether_pkt.ether_dhost, arp_pkt->ar_tha, ETHER_ADDR_LEN);
+
         memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
         sr_ether_pkt.ether_type = htons(type);
 
