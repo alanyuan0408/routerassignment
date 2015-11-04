@@ -174,6 +174,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     struct sr_arp_hdr * arp_pkt;
     uint8_t *send_packet;
     unsigned int eth_pkt_len;
+    struct sr_arpentry *arp_entry;
 
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr, rt->interface);
