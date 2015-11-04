@@ -151,7 +151,6 @@ void arp_handlepacket(struct sr_instance *sr,
                 while (pkt_wait != 0) {
                     /* Send the packets out */
                     s_interface = sr_get_interface(sr, pkt_wait->iface);
-                    print_hdr_ip(pkt_wait->buf);
 
                     sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
                         s_interface->ip, ethertype_ip);
@@ -205,6 +204,8 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         free(send_packet);
 
     } else if (type == ethertype_ip){
+
+        printf("** GOT HERE\n");
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, rt->dest.s_addr);
 
@@ -289,8 +290,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
             struct sr_ip_hdr *ip_hdr_csum = (struct sr_ip_hdr *)cache_packet;
             ip_hdr_csum->ip_sum = cksum(ip_hdr_csum, sizeof(sr_ip_hdr_t));
-
-            print_hdr_ip(cache_packet);
 
             req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
 
