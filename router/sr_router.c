@@ -134,6 +134,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
         struct sr_arpentry *arp_entry;
         struct sr_arpreq *arp_req;
+        struct sr_if *s_interface;
 
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
@@ -148,9 +149,8 @@ void arp_handlepacket(struct sr_instance *sr,
 
                 while (pkt_wait != 0) {
                     /* Send the packets out */
-                    struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
-                    struct sr_ethernet_hdr sr_ether_hdr;
-                    print_hdrs(pkt_wait->buf, pkt_wait->len);
+                    s_interface = sr_get_interface(sr, pkt_wait->iface);
+                    print_hdr_ip(pkt_wait->buf);
 
                     sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
                         s_interface->ip, ethertype_ip);
