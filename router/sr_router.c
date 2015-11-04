@@ -150,7 +150,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
                 while (pkt_wait != 0) {
                     /* Send the packets out */
-                    s_interface = sr_get_interface(sr, pkt_wait->iface);
+                    s_interface = sr_get_interface(sr, pkt_wait->name);
 
                     sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
                         s_interface->ip, ethertype_ip);
