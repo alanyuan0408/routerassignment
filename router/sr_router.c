@@ -288,10 +288,11 @@ void ip_handlepacket(struct sr_instance *sr,
     } else {
 
         ip_hdr->ip_ttl --;
-        printf("** rewerf\n");
 
         /* If TTL reaches 0, send  ICMP time exceeded and return */
         if (ip_hdr->ip_ttl == 0) {
+
+          printf("** Recieved IP packet\n");
               
             /* Send ICMP time exceeded */
             uint32_t dst;
