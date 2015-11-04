@@ -106,45 +106,29 @@ void arp_handlepacket(struct sr_instance *sr,
 {
     printf("** Recieved ARP packet\n");
 
-    /* Initalize ARP header and Input Interface */
+    /* Initalize ARP header from the Packet */
     struct sr_arp_hdr *arp_hdr = arp_header(packet);
+    /* Interface the packet arrived in */
     struct sr_if *r_iface = sr_get_interface(sr,interface);
 
+    /* Check if interface->ip = arp header->ip */
     if (r_iface->ip != arp_hdr->ar_tip){
-      return;
+        return;
     }
 
+    /* validate ARP packet */
     if (!arp_validpacket(packet, len))
-      return;
+        return;
 
     if (ntohs(arp_hdr->ar_op) == arp_op_request){
 
-      if(sr_arp_req_not_for_us(sr, packet, len, interface))
-        return;
+        if(sr_arp_req_not_for_us(sr, packet, len, interface))
+            return;
 
-      printf("** ARP packet request to me \n");   
-   
-      /* build the arp reply packet  */
-      struct sr_arp_hdr arp_packet_reply;
-      arp_packet_reply = build_arp_reply(arp_hdr, r_iface);
+        printf("** ARP packet request to me \n");   
+        /* build and send ARP packet  */
+        build_arp_reply(sr, arp_hdr, r_iface);
       
-      /* Build the Ethernet Packet */
-      struct sr_ethernet_hdr sr_ether_pkt;
-      memcpy(sr_ether_pkt.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
-      memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
-      sr_ether_pkt.ether_type = htons(ethertype_arp);
-
-      /* Copy the Packet into the sender buf */
-      uint8_t *send_packet;
-      unsigned int eth_pkt_len;
-      eth_pkt_len = sizeof(arp_packet_reply) + sizeof(sr_ether_pkt);
-      send_packet = malloc(eth_pkt_len);
-      memcpy(send_packet, &sr_ether_pkt, sizeof(sr_ether_pkt));
-      memcpy(send_packet + sizeof(sr_ether_pkt), &arp_packet_reply, sizeof(arp_packet_reply));
-
-      /* send the reply*/
-      sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
-      free(send_packet);
     } else if (ntohs(arp_hdr->ar_op) == arp_op_reply) {
         printf("** ARP packet reply to me\n");
 
@@ -166,7 +150,6 @@ void arp_handlepacket(struct sr_instance *sr,
 
               /* Send the packets out */
               struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
-
               struct sr_ethernet_hdr sr_ether_hdr;
 
               memcpy(sr_ether_hdr.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN); /*address from routing table*/
@@ -191,7 +174,41 @@ void arp_handlepacket(struct sr_instance *sr,
     }
 }
 
-struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface)
+void sr_add_ethernet_send(struct sr_instance *sr,
+        uint8_t *packet,
+        unsigned int len,
+        uint32_t dip,
+        enum sr_ethertype type) 
+{
+    struct sr_rt *rt;
+    struct sr_if *r_iface;
+    struct sr_ethernet_hdr sr_ether_pkt;
+    uint8_t *send_packet;
+    unsigned int eth_pkt_len;
+
+    rt = longest_prefix_matching(sr, dip);
+    r_iface = sr_get_interface(sr,interface);
+
+    if (type = ethertype_arp){ 
+        /* Build the Ethernet Packet */
+        memcpy(sr_ether_pkt.ether_dhost, rt->addr, ETHER_ADDR_LEN);
+        memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+        sr_ether_pkt.ether_type = htons(type);
+
+        /* Copy the Packet into the sender buf */
+        eth_pkt_len = sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr);
+        send_packet = malloc(eth_pkt_len);
+        memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
+        memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
+          packet, sizeof(struct sr_arp_hdr));
+
+        /* send the reply*/
+        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+        free(send_packet);
+    }
+}
+
+void build_arp_reply(struct sr_instance *sr, struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface)
 {
       /* Initalize ARP header and Input Interface */
       struct sr_arp_hdr build_arp;
@@ -207,14 +224,14 @@ struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_if
       memcpy(build_arp.ar_sha, r_iface->addr, ETHER_ADDR_LEN); 
       memcpy(build_arp.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN);
 
-      return build_arp;
+      sr_add_ethernet_send(sr, (uint8_t *)&build_arp, 
+              sizeof(struct sr_arp_hdr), arp_hdr->ar_sip, ethertype_arp);
 }
 
 void ip_handlepacket(struct sr_instance *sr,
         uint8_t *packet,
         unsigned int len,
-        char *interface) 
-{ 
+        char *interface) { 
     printf("** Recieved IP packet\n");
 
     /* Test Broadcast */

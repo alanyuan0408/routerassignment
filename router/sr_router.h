@@ -69,7 +69,7 @@ int sr_arp_req_not_for_us(struct sr_instance*, uint8_t *, unsigned int, char*);
 void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
 void arp_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
-struct sr_arp_hdr build_arp_reply(struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
+void build_arp_reply(struct sr_instance *, struct sr_arp_hdr *arp_hdr, struct sr_if *r_iface);
 void ip_handlepacket(struct sr_instance*, uint8_t *, unsigned int, char *);
 void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req);
 int arp_validpacket(uint8_t *packet, unsigned int len);
@@ -81,7 +81,8 @@ void arp_boardcast(struct sr_instance* sr, struct sr_arpreq *req);
 struct sr_icmp_hdr icmp_send_reply_packet();
 struct sr_icmp_t3_hdr* icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num);
 struct sr_icmp_t3_hdr *icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num);
-
+void sr_add_ethernet_send(struct sr_instance *sr, uint8_t *packet,
+        unsigned int len, uint32_t dip, enum sr_ethertype type); 
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
