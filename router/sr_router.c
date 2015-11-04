@@ -148,7 +148,6 @@ void arp_handlepacket(struct sr_instance *sr,
                 struct sr_packet *pkt_wait = arp_req->packets;
 
                 while (pkt_wait != 0) {
-
                     /* Send the packets out */
                     struct sr_if *s_interface = sr_get_interface(sr, pkt_wait->iface);
                     struct sr_ethernet_hdr sr_ether_hdr;
@@ -156,12 +155,9 @@ void arp_handlepacket(struct sr_instance *sr,
                     sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
                         s_interface->ip, ethertype_ip);
 
-                /* Free the temp_arp Packet */
-                temp_arp = pkt_wait;
                 pkt_wait = pkt_wait->next;
-                free(temp_arp);
-              }
-          } 
+                }
+            } 
         }   
     }
 }
@@ -202,8 +198,13 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
             packet, sizeof(struct sr_arp_hdr));
 
-    } else if (type == ethertype_arp){
-
+    } else if (type == ethertype_ip){
+        /* Copy the Packet into the sender buf */
+        eth_pkt_len = len + sizeof(struct sr_ethernet_hdr);
+        send_packet = malloc(len);
+        memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
+        memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
+            packet, len);
     }
 
     /* send the reply*/
