@@ -592,7 +592,7 @@ struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code
     struct sr_icmp_t3_hdr *icmp_error_reply;
     struct sr_icmp_t3_hdr *icmp_input;
 
-    icmp_input = icmp_header(ip_hdr);
+    icmp_error_reply = icmp_header(ip_hdr);
 
     icmp_error_reply->icmp_type = htons(type_dst_unreach);
     switch (code_num)
