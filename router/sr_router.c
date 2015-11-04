@@ -135,6 +135,7 @@ void arp_handlepacket(struct sr_instance *sr,
         struct sr_arpentry *arp_entry;
         struct sr_arpreq *arp_req;
         struct sr_if *s_interface;
+        struct sr_packet *pkt_wait;
 
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
@@ -145,7 +146,7 @@ void arp_handlepacket(struct sr_instance *sr,
 
             /* Check ARP request queue, if not empty send out packets on it*/
             if (arp_req != 0) {
-                struct sr_packet *pkt_wait = arp_req->packets;
+                pkt_wait = arp_req->packets;
 
                 while (pkt_wait != 0) {
                     /* Send the packets out */
@@ -205,7 +206,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
 
     } else if (type == ethertype_ip){
         /* Check ARP cache */
-        arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
+        arp_entry = sr_arpcache_lookup(&sr->cache, rt->dest.s_addr);
 
         /* Construct the Ethernet Packet */
         sr_ether_pkt.ether_type = htons(type);
