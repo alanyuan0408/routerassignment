@@ -335,7 +335,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              ntohl(ip_hdr->ip_len) - (ip_hdr->ip_hl*4));
+              ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl*4));
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
