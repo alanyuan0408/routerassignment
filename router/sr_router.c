@@ -136,6 +136,7 @@ void arp_handlepacket(struct sr_instance *sr,
         struct sr_arpreq *arp_req;
         struct sr_if *s_interface;
         struct sr_packet *pkt_wait;
+        struct sr_packet *temp;
         uint8_t *send_packet;
         unsigned int eth_pkt_len;
 
@@ -170,7 +171,9 @@ void arp_handlepacket(struct sr_instance *sr,
 
                     sr_send_packet(sr, send_packet, eth_pkt_len, s_interface->name);
 
+                temp = pkt_wait;
                 pkt_wait = pkt_wait->next;
+                free(temp);
                 }
             } 
         }   
