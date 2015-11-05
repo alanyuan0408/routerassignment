@@ -421,23 +421,22 @@ void ip_handlepacket(struct sr_instance *sr,
             error_packet.icmp_type = 3;
             error_packet.icmp_code = 0;
             error_packet.icmp_sum = 0;
+            error_packet.unused = 0;
+            error_packet.next_mtu = hton(MTU);
 
             icmp_len = sizeof(struct sr_icmp_t3_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
-            fprintf(stderr, "\ticmp_len: %d\n", icmp_len);
-            fprintf(stderr, "\ttotal_len: %d\n", total_len);
 
             send_ip_hdr.ip_len = htons(total_len);
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
 
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, &send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
-            /* Copy the ICMP error packet over */
-            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &error_packet, 
-                sizeof(struct sr_icmp_hdr));
+            memcpy(error_packet.data, &send_ip_hdr, 
+              ICMP_DATA_SIZE);
 
-            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ICMP_IP_HDR_LEN_BYTE + ICMP_COPY_DATAGRAM_LEN);
+            memcpy(cache_packet, send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, error_packet, 
+              sizeof(struct sr_icmp_t3_hdr));
 
             print_hdr_ip(cache_packet);
             
