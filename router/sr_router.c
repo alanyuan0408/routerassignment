@@ -466,7 +466,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 {
     if (difftime(time(0), req->sent) > 1.0) {
     
-       struct sr_if *s_interface;
        struct sr_ip_hdr *ip_hdr;
        struct sr_rt *lpmatch;
 
@@ -503,14 +502,13 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 
           /* Check ARP cache  */
           arp_entry = sr_arpcache_lookup(&sr->cache, dst);
-          s_interface = sr_get_interface(sr, ip_hdr->ip_src);
 
           if (arp_entry != 0){
               /* Entry Exists, we can send it out right now */
               sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
           } else {
               req = sr_arpcache_queuereq(&(sr->cache), dst, 
-                    cache_packet, total_len, s_interface->name);
+                    cache_packet, total_len, lpmatch->interface);
           }  
           sr_arpreq_destroy(&sr->cache, req);
 
