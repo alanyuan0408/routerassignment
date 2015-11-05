@@ -468,7 +468,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     
        struct sr_ip_hdr *ip_hdr;
        struct sr_rt *lpmatch;
-       struct sr_if *s_interface;
 
       /* Host is not reachable */
       if (req->times_sent >= 5) {
@@ -514,7 +513,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           sr_arpreq_destroy(&sr->cache, req);
 
       } else {
-          s_interface = sr_get_interface(sr, req->packets->iface);
           arp_boardcast(sr, req);
           req->sent = time(0);
           req->times_sent ++;
