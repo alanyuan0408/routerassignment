@@ -410,7 +410,6 @@ void ip_handlepacket(struct sr_instance *sr,
           	/* Modify the ICMP error packet */
             error_packet.icmp_type = htons(type_dst_unreach);
             error_packet.icmp_code = htons(code_net_unreach);
-            error_packet.unused = 0;
             error_packet.icmp_sum = 0;
 
             icmp_len = ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN + 
