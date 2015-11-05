@@ -335,7 +335,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl*4));
+               sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -368,7 +368,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              (ip_hdr->ip_len) - (ip_hdr->ip_hl*4));
+              sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -411,7 +411,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              (ip_hdr->ip_len) - (ip_hdr->ip_hl*4));
+              sizeof(sr_icmp_t3_hdr_t));
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
