@@ -332,10 +332,12 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /* Modify the ICMP error packet */
 	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
-            total_len = ip_len(ip_hdr);
+
+            icmp_len = sizeof(struct sr_icmp_t3_hdr);
+            total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             cache_packet = malloc(total_len);
 
-            memcpy(cache_packet, packet, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
                sizeof(sr_icmp_t3_hdr_t));
 
