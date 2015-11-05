@@ -664,7 +664,6 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
 
     struct sr_icmp_t3_hdr icmp_error_reply;
 
-    &(icmp_error_reply) = icmp_header(ip_hdr);
     icmp_error_reply.icmp_type = htons(type_dst_unreach);
 
     switch (code_num)
@@ -692,8 +691,6 @@ struct sr_icmp_t3_hdr icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code
 {
 
     struct sr_icmp_t3_hdr icmp_error_reply;
-
-    &(icmp_error_reply) = icmp_header(ip_hdr);
 
     icmp_error_reply.icmp_type = htons(type_time_exceeded);
     switch (code_num)
