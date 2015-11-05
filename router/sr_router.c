@@ -473,7 +473,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_rt *lpmatch;
 
           /* Send ICMP host unreachable*/
-          ip_hdr = ip_header(req->packets);
+          ip_hdr = ip_header(req->packets->buf);
           lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
 
           if(lpmatch != 0){
