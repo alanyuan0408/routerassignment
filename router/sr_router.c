@@ -355,8 +355,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
         /* If TTL reaches 0, send  ICMP time exceeded and return */
         if (ip_hdr->ip_ttl == 0) {
-
-            printf("** Destination Unreachable\n");
               
             /* Send ICMP time exceeded */
             dst = ip_hdr->ip_src;
@@ -401,6 +399,7 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If cannot find destination IP in routing table, send ICMP net unreachable */
         if (lpmatch == 0) {
         
+            printf("** Destination Unreachable\n");
             /* Send ICMP net unreachable */
           	dst = ip_hdr->ip_src;
           	ip_hdr->ip_src = r_interface->ip;
@@ -586,7 +585,6 @@ int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
 {
     /* -- REQUIRES -- */
-    assert(sr);
 
     struct sr_if* if_walker = sr->if_list;
     while(if_walker) {
