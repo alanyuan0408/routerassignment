@@ -318,7 +318,8 @@ void ip_handlepacket(struct sr_instance *sr,
                 sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
 
             } else {
-                req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
+                req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, 
+                  total_len, interface);
             }
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
@@ -344,7 +345,19 @@ void ip_handlepacket(struct sr_instance *sr,
 
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	    
+            /*Check if we should send immediately or wait */
+            struct sr_arpentry *arp_entry;
+            arp_entry = sr_arpcache_lookup(&sr->cache, dst);
+
+            if (arp_entry != 0){
+                /* Entry Exists, we can send it out right now */
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
+
+            } else {
+
+                req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, 
+                  total_len, interface);
+            }
                     
         }
     } else {
@@ -374,7 +387,19 @@ void ip_handlepacket(struct sr_instance *sr,
 
             struct sr_arpreq *req;
 
-            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);  
+            /*Check if we should send immediately or wait */
+            struct sr_arpentry *arp_entry;
+            arp_entry = sr_arpcache_lookup(&sr->cache, dst);
+
+            if (arp_entry != 0){
+                /* Entry Exists, we can send it out right now */
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
+
+            } else {
+
+              req = sr_arpcache_queuereq(&(sr->cache), dst, 
+                cache_packet, total_len, interface);
+            }
           
           return;
         }
@@ -415,8 +440,20 @@ void ip_handlepacket(struct sr_instance *sr,
       	memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
 
       	struct sr_arpreq *req;
+        
+        /*Check if we should send immediately or wait */
+        struct sr_arpentry *arp_entry;
+        arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
-      	req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);	  
+        if (arp_entry != 0){
+            /* Entry Exists, we can send it out right now */
+            sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
+
+        } else {
+
+            req = sr_arpcache_queuereq(&(sr->cache), dst, 
+                cache_packet, total_len, interface);
+        }  
 
         return;
         }
