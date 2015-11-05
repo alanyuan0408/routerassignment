@@ -501,7 +501,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_arpentry *arp_entry;
 
           /* Check ARP cache  */
-          arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
+          arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
           if (arp_entry != 0){
               /* Entry Exists, we can send it out right now */
