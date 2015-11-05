@@ -325,6 +325,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
+            printf("** Interface Unreachable\n");
             /* Send ICMP port unreachable */
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
@@ -371,7 +372,6 @@ void ip_handlepacket(struct sr_instance *sr,
         /* OR TTL = 0 */
         if (lpmatch == 0 || ip_hdr->ip_ttl == 0) {
         
-            printf("*** Destination Unreachable\n");
             /* Send ICMP net unreachable */
             struct sr_ip_hdr send_ip_hdr;
             send_ip_hdr.ip_hl = 5;
@@ -467,6 +467,8 @@ void ip_handlepacket(struct sr_instance *sr,
           }
       }
 }
+
+void 
 
 void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
 {
