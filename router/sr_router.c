@@ -468,8 +468,6 @@ void ip_handlepacket(struct sr_instance *sr,
       }
 }
 
-void 
-
 void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
 {
     if (difftime(time(0), req->sent) > 1.0) {
