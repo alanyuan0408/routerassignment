@@ -268,7 +268,8 @@ void build_arp_reply(struct sr_instance *sr, struct sr_arp_hdr *arp_hdr, struct 
 void ip_handlepacket(struct sr_instance *sr,
         uint8_t *packet,
         unsigned int len,
-        char *interface) { 
+        char *interface) 
+{ 
     printf("** Recieved IP packet\n");
 
     /* Test Broadcast */
@@ -469,8 +470,8 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     }
 }
 
-int arp_validpacket(uint8_t *packet, unsigned int len){
-
+int arp_validpacket(uint8_t *packet, unsigned int len)
+{
     /* Ensure the packet is long enough */
     if (len < sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr)){
       return 0;
@@ -489,9 +490,8 @@ int arp_validpacket(uint8_t *packet, unsigned int len){
     return 1;
 }
 
-int ip_validpacket(uint8_t *packet, unsigned int len){
-
-    /* Initialization */
+int ip_validpacket(uint8_t *packet, unsigned int len)
+{
     struct sr_ip_hdr * ip_hdr = ip_header(packet);
     uint16_t c_cksum = 0;
     uint16_t r_cksum = ip_hdr->ip_sum;
@@ -512,8 +512,8 @@ int ip_validpacket(uint8_t *packet, unsigned int len){
     return 1;
 }
 
-int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
-
+int icmp_validpacket(struct sr_ip_hdr *ip_hdr)
+{
     /* Initialization */
     sr_icmp_hdr_t *icmp_hdr = icmp_header(ip_hdr);
     uint16_t c_cksum;
@@ -532,8 +532,6 @@ int icmp_validpacket(struct sr_ip_hdr *ip_hdr){
 
 int sr_packet_is_for_me(struct sr_instance* sr, uint32_t ip_dst)
 {
-    /* -- REQUIRES -- */
-
     struct sr_if* if_walker = sr->if_list;
     while(if_walker) {
       if(ip_dst == if_walker->ip){
