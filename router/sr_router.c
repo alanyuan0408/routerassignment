@@ -321,7 +321,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
-           /* printf("** Interface Unreachable\n");
+           /* printf("** Interface Unreachable\n"); */
             /* Send ICMP port unreachable */
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
@@ -356,8 +356,8 @@ void ip_handlepacket(struct sr_instance *sr,
       
 
         /* update checksum 
-        ip_hdr->ip_sum = 0;
-        ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
+        * ip_hdr->ip_sum = 0;
+        * ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
         */
 
         /* Find longest prefix match in routing table. */
@@ -371,44 +371,42 @@ void ip_handlepacket(struct sr_instance *sr,
         }
 
         /*
-        uint8_t *ip_pkt;
-        ip_pkt = malloc(len);
-        memcpy(ip_pkt, ip_hdr, len);
+        * uint8_t *ip_pkt;
+        * ip_pkt = malloc(len);
+        * memcpy(ip_pkt, ip_hdr, len);
         */
 
         /* Get the corresponding interface of the destination IP. 
-        struct sr_if* s_interface = sr_get_interface(sr, lpmatch->interface);
+        * struct sr_if* s_interface = sr_get_interface(sr, lpmatch->interface);
         */
       
         /* Check ARP cache 
-        arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
-
-        if (arp_entry == 0){
-             IF miss APR cache, add the packet to ARP request queue 
-            req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, 
-                  len, s_interface->name);
-            sr_handle_arpreq(sr, req);
-        } else{
+        * arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
+        *
+        *if (arp_entry == 0){
+        *     IF miss APR cache, add the packet to ARP request queue 
+        *    req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, 
+        *          len, s_interface->name);
+        *    sr_handle_arpreq(sr, req);
+        *} else{
         */
 
             /* Hit ARP cache, send out the packet right away, next-hop 
-            sr_ethernet_hdr_t sr_ether_pkt;
-
-            memcpy(sr_ether_pkt.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN); 
-            memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
-            sr_ether_pkt.ether_type = htons(ethertype_ip);
-
-            uint8_t *packet_rqt;
-            unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
-            packet_rqt = malloc(total_len);
-            memcpy(packet_rqt, &(sr_ether_pkt), sizeof(sr_ether_pkt));
-            memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
-
-
-            sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
-            free(packet_rqt);
-          }
-          */
+            *sr_ethernet_hdr_t sr_ether_pkt;
+            *
+            *memcpy(sr_ether_pkt.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN); 
+            *memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
+            *sr_ether_pkt.ether_type = htons(ethertype_ip);
+            *
+            *uint8_t *packet_rqt;
+            *unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
+            *packet_rqt = malloc(total_len);
+            *memcpy(packet_rqt, &(sr_ether_pkt), sizeof(sr_ether_pkt));
+            *memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
+            *sr_send_packet(sr, packet_rqt, total_len, s_interface->name);
+            *free(packet_rqt);
+            *}
+            */
     }
 }
 
