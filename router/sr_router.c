@@ -424,6 +424,9 @@ void ip_handlepacket(struct sr_instance *sr,
 
             icmp_len = ICMP_IP_HDR_LEN_BYTE + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
+            fprintf(stderr, "\ticmp_len: %d\n", icmp_len);
+            fprintf(stderr, "\ttotal_len: %d\n", total_len);
+
             send_ip_hdr.ip_len = htons(total_len);
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
 
