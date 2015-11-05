@@ -336,8 +336,8 @@ void ip_handlepacket(struct sr_instance *sr,
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
 
-            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
+            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
                sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
@@ -406,8 +406,7 @@ void ip_handlepacket(struct sr_instance *sr,
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
 
             cache_packet = malloc(total_len);
-            memcpy(error_packet.data, ip_hdr, 
-              ICMP_DATA_SIZE);
+            memcpy(error_packet.data, ip_hdr, ICMP_DATA_SIZE);
 
             memcpy(cache_packet, &(send_ip_hdr), ICMP_IP_HDR_LEN_BYTE);
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(error_packet), 
@@ -698,7 +697,7 @@ struct sr_icmp_t3_hdr icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code
 
     struct sr_icmp_t3_hdr icmp_error_reply;
     memcpy(icmp_error_reply.data, ip_hdr, ICMP_DATA_SIZE);
-    
+
     icmp_error_reply.icmp_type = htons(type_time_exceeded);
     switch (code_num)
     {
