@@ -197,7 +197,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     rt = longest_prefix_matching(sr, dip);
     r_iface = sr_get_interface(sr, rt->interface);
 
-    if (type == ethertype_arp){ 
+    if (type == ethertype_arp) { 
         arp_pkt = (struct sr_arp_hdr *)packet;
 
         /* Broadcast Request */
@@ -315,7 +315,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
-                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip) 
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
 
             } else {
                 req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
