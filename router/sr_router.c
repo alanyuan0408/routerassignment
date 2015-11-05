@@ -406,20 +406,26 @@ void ip_handlepacket(struct sr_instance *sr,
           	ip_hdr->ip_src = r_interface->ip;
           	ip_hdr->ip_dst = dst;
 
+            struct sr_icmp_hdr error_packet;
           	/* Modify the ICMP error packet */
-          	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
-            icmp_len = 20 + ICMP_COPY_DATAGRAM_LEN + 
+            error_packet.icmp_type = htons(type_dst_unreach);
+            error_packet.icmp_code = htons(code_net_unreach);
+            error_packet.unused = 0;
+            error_packet.icmp_sum = 0;
+
+            icmp_len = ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN + 
               sizeof(struct sr_icmp_hdr);
             total_len = 20 + icmp_len;
             cache_packet = malloc(total_len);
+            ip_hdr->ip_len = htons(total_len);
 
-            memcpy(cache_packet, ip_hdr, 20);
+            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             /* Copy the ICMP error packet over */
-            memcpy(cache_packet + 20, &(icmp_error_packet), 
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(error_packet), 
                 sizeof(struct sr_icmp_hdr));
 
-            memcpy(cache_packet + 20 + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, 20 + ICMP_COPY_DATAGRAM_LEN);
+            memcpy(cache_packet + ip_hdr->ip_hl * 4 + sizeof(struct sr_icmp_hdr),
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
             
