@@ -235,7 +235,7 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         send_packet = malloc(eth_pkt_len);
         memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
         memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
-            packet, len;
+            packet, len);
 
         /* send the reply*/
         sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
