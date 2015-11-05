@@ -405,7 +405,7 @@ void ip_handlepacket(struct sr_instance *sr,
             /* Send ICMP net unreachable */
             struct sr_ip_hdr send_ip_hdr;
             send_ip_hdr.ip_hl = 5;
-            send_ip_hdr.ip_v = ip_version_4;
+            send_ip_hdr.ip_v = ip_hdr->ip_v;
             send_ip_hdr.ip_tos = 0;
             send_ip_hdr.ip_id = ip_hdr->ip_id;
             send_ip_hdr.ip_off = htons(IP_DF);
