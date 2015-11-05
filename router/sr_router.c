@@ -327,7 +327,7 @@ void ip_handlepacket(struct sr_instance *sr,
             ip_hdr->ip_dst = dst;
 
             /* Modify the ICMP error packet */
-	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
+	          // icmp_send_error_packet(ip_hdr, 3);
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
 
@@ -431,7 +431,8 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           ip_hdr->ip_dst = dst;
 
           /* Modify the ICMP error packet */
-  	      struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+  	      struct sr_icmp_t3_hdr icmp_error_packet;
+          // = icmp_send_error_packet(ip_hdr,1);
 
           /* Copy the packet over */
           uint8_t *cache_packet;
