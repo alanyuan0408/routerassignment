@@ -418,11 +418,11 @@ void ip_handlepacket(struct sr_instance *sr,
 
             struct sr_icmp_hdr error_packet;
           	/* Modify the ICMP error packet */
-            error_packet.icmp_type = 4;
+            error_packet.icmp_type = 3;
             error_packet.icmp_code = 0;
             error_packet.icmp_sum = 0;
 
-            icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr);
+            icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr) + 4;
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             send_ip_hdr.ip_len = htons(total_len);
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
@@ -434,7 +434,7 @@ void ip_handlepacket(struct sr_instance *sr,
                 sizeof(struct sr_icmp_hdr));
 
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN);
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN) + 4;
 
             print_hdr_ip(cache_packet);
             
