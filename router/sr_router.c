@@ -335,7 +335,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              sizeof(struct sr_icmp_t3_hdr));
+              sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -368,7 +368,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              sizeof(icmp_error_packet));
+              sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -410,7 +410,7 @@ void ip_handlepacket(struct sr_instance *sr,
           	total_len = ip_len(ip_hdr);
           	cache_packet = malloc(total_len);
           	memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-          	memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
+          	memcpy(cache_packet, icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
@@ -427,7 +427,7 @@ void ip_handlepacket(struct sr_instance *sr,
         }
 
         /* Get the corresponding interface of the destination IP. */
-        s_interface = sr_get_interface(sr, lpmatch->interface);
+        struct sr_if* s_interface = sr_get_interface(sr, lpmatch->interface);
       
         /* Check ARP cache */
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
@@ -468,9 +468,12 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
+          struct sr_ip_hdr *ip_hdr;
+          struct sr_rt *lpmatch;
+
           /* Send ICMP host unreachable*/
-  	      struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
-          struct sr_rt *lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
+          ip_hdr = ip_header(req->packets);
+          lpmatch =longest_prefix_matching(sr, ip_hdr->ip_src);
 
           if(lpmatch != 0){
             return;
