@@ -466,11 +466,12 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 {
     if (difftime(time(0), req->sent) > 1.0) {
     
+       struct sr_if *s_interface;
+       struct sr_ip_hdr *ip_hdr;
+       struct sr_rt *lpmatch;
+
       /* Host is not reachable */
       if (req->times_sent >= 5) {
-
-          struct sr_ip_hdr *ip_hdr;
-          struct sr_rt *lpmatch;
 
           /* Send ICMP host unreachable*/
           ip_hdr = ip_header(req->packets->buf);
@@ -502,19 +503,18 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 
           /* Check ARP cache  */
           arp_entry = sr_arpcache_lookup(&sr->cache, dst);
+          s_interface = sr_get_interface(sr, ip_hdr->ip_src);
 
           if (arp_entry != 0){
               /* Entry Exists, we can send it out right now */
               sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
           } else {
               req = sr_arpcache_queuereq(&(sr->cache), dst, 
-                    cache_packet, total_len, interface);
+                    cache_packet, total_len, s_interface->name);
           }  
           sr_arpreq_destroy(&sr->cache, req);
 
       } else {
-          struct sr_if *s_interface;
-
           s_interface = sr_get_interface(sr, req->packets->iface);
           arp_boardcast(sr, req);
           req->sent = time(0);
