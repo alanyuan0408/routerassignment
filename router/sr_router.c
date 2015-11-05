@@ -400,7 +400,7 @@ void ip_handlepacket(struct sr_instance *sr,
         /* If cannot find destination IP in routing table, send ICMP net unreachable */
         if (lpmatch == 0) {
         
-            printf("** Destination Unreachable\n");
+            printf("*** Destination Unreachable\n");
             /* Send ICMP net unreachable */
           	dst = ip_hdr->ip_src;
           	ip_hdr->ip_src = r_interface->ip;
