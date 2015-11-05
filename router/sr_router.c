@@ -31,6 +31,7 @@
 #define ICMP_ECHO_REPLY_LEN 56
 #define ICMP_TYPE3_LEN 36
 #define ICMP_COPY_DATAGRAM_LEN 8
+#define ICMP_IP_HDR_LEN_BYTE 20
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -412,22 +413,21 @@ void ip_handlepacket(struct sr_instance *sr,
             error_packet.icmp_code = htons(code_net_unreach);
             error_packet.icmp_sum = 0;
 
-            icmp_len = ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN + 
-              sizeof(struct sr_icmp_hdr);
-            total_len = 20 + icmp_len;
-            cache_packet = malloc(total_len);
+            icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr);
+            total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             ip_hdr->ip_len = htons(total_len);
+            ip_hdr->ip_sum = cksum(&ip_hdr, ICMP_IP_HDR_LEN_BYTE)
 
-            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
             /* Copy the ICMP error packet over */
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(error_packet), 
+            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(error_packet), 
                 sizeof(struct sr_icmp_hdr));
 
-            memcpy(cache_packet + ip_hdr->ip_hl * 4 + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN);
+            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
-            print_hdr_icmp((uint8_t *)error_packet));
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
