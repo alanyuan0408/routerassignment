@@ -443,7 +443,7 @@ void ip_handlepacket(struct sr_instance *sr,
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
             struct sr_icmp_hdr *icmp_hdr_ptr;
-            icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *))cache_packet;
+            icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
             icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
 
             if (arp_entry != 0){
