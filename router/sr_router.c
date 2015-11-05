@@ -315,6 +315,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
+              printf("** SEnd Right Away\n");
                 sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
 
             } else {
