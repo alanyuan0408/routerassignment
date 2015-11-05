@@ -350,7 +350,7 @@ void ip_handlepacket(struct sr_instance *sr,
                     
         }
     } else {
-
+        /* Packet is not for you */
         ip_hdr->ip_ttl --;
 
         /* If TTL reaches 0, send  ICMP time exceeded and return */
@@ -394,52 +394,37 @@ void ip_handlepacket(struct sr_instance *sr,
 
         /* Find longest prefix match in routing table. */
         struct sr_rt* lpmatch = 0;
-
         lpmatch = longest_prefix_matching(sr, ip_hdr->ip_dst);
         
         /* If cannot find destination IP in routing table, send ICMP net unreachable */
         if (lpmatch == 0) {
         
-        /* Send ICMP net unreachable */
+            /* Send ICMP net unreachable */
+          	dst = ip_hdr->ip_src;
+          	ip_hdr->ip_src = r_interface->ip;
+          	ip_hdr->ip_dst = dst;
 
-        uint32_t dst;
-      	dst = ip_hdr->ip_src;
-      	ip_hdr->ip_src = r_interface->ip;
-      	ip_hdr->ip_dst = dst;
+          	/* Modify the ICMP error packet */
+          	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
 
-      	/* Modify the ICMP error packet */
-      	struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
+          	total_len = ip_len(ip_hdr);
+          	cache_packet = malloc(total_len);
+          	memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+          	memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
+            
+            /*Check if we should send immediately or wait */
+            struct sr_arpentry *arp_entry;
+            arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
-      	/* Copy the packet over */
-      	uint8_t *cache_packet;
-      	uint16_t total_len;
-
-      	total_len = ip_len(ip_hdr);
-      	cache_packet = malloc(total_len);
-      	memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-      	memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
-
-      	struct sr_arpreq *req;
-        
-        /*Check if we should send immediately or wait */
-        struct sr_arpentry *arp_entry;
-        arp_entry = sr_arpcache_lookup(&sr->cache, dst);
-
-        if (arp_entry != 0){
-            /* Entry Exists, we can send it out right now */
-            sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
-
-        } else {
-
-            req = sr_arpcache_queuereq(&(sr->cache), dst, 
-                cache_packet, total_len, interface);
-        }  
-
-        return;
+            if (arp_entry != 0){
+                /* Entry Exists, we can send it out right now */
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
+            } else {
+                req = sr_arpcache_queuereq(&(sr->cache), dst, 
+                    cache_packet, total_len, interface);
+            }  
+            return;
         }
-        
-        struct sr_arpentry *arp_entry;
-        struct sr_if *s_interface;
 
         /* Get the corresponding interface of the destination IP. */
         s_interface = sr_get_interface(sr, lpmatch->interface);
@@ -448,14 +433,13 @@ void ip_handlepacket(struct sr_instance *sr,
         arp_entry = sr_arpcache_lookup(&sr->cache, lpmatch->gw.s_addr);
 
         if (arp_entry == 0){
-          /* IF miss APR cache, add the packet to ARP request queue */
-          struct sr_arpreq *req;  
-
-          req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, len, s_interface->name);
-          sr_handle_arpreq(sr, req);
+            /* IF miss APR cache, add the packet to ARP request queue */
+            req = sr_arpcache_queuereq(&sr->cache, lpmatch->gw.s_addr, ip_pkt, 
+                  len, s_interface->name);
+            sr_handle_arpreq(sr, req);
         } else{
 
-            /* Hit ARP cache, send out the packet right away */
+            /* Hit ARP cache, send out the packet right away, next-hop */
 
             /* Encap the arp request into ethernet frame and then send it */
             sr_ethernet_hdr_t sr_ether_pkt;
@@ -484,35 +468,41 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
-        /* Send ICMP host unreachable*/
-	      struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
-        struct sr_rt *lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
+          /* Send ICMP host unreachable*/
+  	      struct sr_ip_hdr *ip_hdr = ip_header(req->packets);/*whether &*/
+          struct sr_rt *lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
 
-        if(lpmatch != 0){
-          return;
-        }
+          if(lpmatch != 0){
+            return;
+          }
 
-         uint32_t dst;
-         dst = ip_hdr->ip_src;
-         ip_hdr->ip_src = ip_hdr->ip_dst;
-         ip_hdr->ip_dst = dst;
+           uint32_t dst;
+           dst = ip_hdr->ip_src;
+           ip_hdr->ip_src = ip_hdr->ip_dst;
+           ip_hdr->ip_dst = dst;
 
-         /* Modify the ICMP error packet */
-	       struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+           /* Modify the ICMP error packet */
+  	       struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
 
-         /* Copy the packet over */
-         uint8_t *cache_packet;
-         uint16_t total_len;
+           /* Copy the packet over */
+           uint8_t *cache_packet;
+           uint16_t total_len;
 
-         total_len = ip_len(ip_hdr);
-         cache_packet = malloc(total_len);
-         memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
-         memcpy(cache_packet, &icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
+           total_len = ip_len(ip_hdr);
+           cache_packet = malloc(total_len);
+           memcpy(cache_packet, ip_hdr, (ip_hdr->ip_hl)*4);
+           memcpy(cache_packet, icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
 
-         struct sr_arpreq *req;
+           struct sr_arpreq *req;
 
-         req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, lpmatch->interface); 
-         sr_arpreq_destroy(&sr->cache, req);
+            if (arp_entry != 0){
+                /* Entry Exists, we can send it out right now */
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
+            } else {
+                req = sr_arpcache_queuereq(&(sr->cache), dst, 
+                    cache_packet, total_len, interface);
+            }  
+           sr_arpreq_destroy(&sr->cache, req);
 
       } else {
           struct sr_if *s_interface;
