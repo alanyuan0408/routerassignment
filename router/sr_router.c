@@ -152,8 +152,21 @@ void arp_handlepacket(struct sr_instance *sr,
                     /* Send the packets out */
                     s_interface = sr_get_interface(sr, pkt_wait->iface);
 
-                    sr_add_ethernet_send(sr, pkt_wait->buf, pkt_wait->len, 
-                        arp_entry->ip, ethertype_ip);
+                    struct sr_ethernet_hdr sr_ether_hdr;
+
+                    /* Construct the Ethernet Packet */
+                    sr_ether_pkt.ether_type = htons(ethertype_ip);
+                    memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
+                    memcpy(sr_ether_pkt.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
+
+                    /* Copy the Packet into the sender buf */
+                    eth_pkt_len = pkt_wait->len + sizeof(struct sr_ethernet_hdr);
+                    send_packet = malloc(eth_pkt_len);
+                    memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
+                    memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
+                        pkt_wait->buf, pkt_wait->len);
+
+                    sr_send_packet(sr, send_packet, eth_pkt_len, s_interface->name);
 
                 pkt_wait = pkt_wait->next;
                 }
@@ -180,8 +193,6 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     sr_print_routing_entry(rt);
     r_iface = sr_get_interface(sr, rt->interface);
 
-    printf("** !\n");
-
     if (type == ethertype_arp){ 
         arp_pkt = (struct sr_arp_hdr *)packet;
 
@@ -206,24 +217,6 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
         free(send_packet);
 
-    } else{
-
-        /* Check ARP cache */
-        arp_entry = sr_arpcache_lookup(&sr->cache, rt->dest.s_addr);
-
-        /* Construct the Ethernet Packet */
-        sr_ether_pkt.ether_type = htons(type);
-        memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
-        memcpy(sr_ether_pkt.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
-
-        /* Copy the Packet into the sender buf */
-        eth_pkt_len = len + sizeof(struct sr_ethernet_hdr);
-        send_packet = malloc(len);
-        memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
-        memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
-            packet, len);
-
-        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
     }
 
 }
