@@ -325,7 +325,6 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
-            printf("** Interface Unreachable\n");
             /* Send ICMP port unreachable */
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
@@ -336,7 +335,7 @@ void ip_handlepacket(struct sr_instance *sr,
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
 
-            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet, packet, ICMP_IP_HDR_LEN_BYTE);
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
                sizeof(sr_icmp_t3_hdr_t));
 
