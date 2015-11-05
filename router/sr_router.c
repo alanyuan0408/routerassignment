@@ -137,6 +137,7 @@ void arp_handlepacket(struct sr_instance *sr,
         struct sr_if *s_interface;
         struct sr_packet *pkt_wait;
         uint8_t *send_packet;
+        unsigned int eth_pkt_len;
 
         /* Check ARP cache  */
         arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
