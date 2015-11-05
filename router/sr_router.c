@@ -311,7 +311,7 @@ void ip_handlepacket(struct sr_instance *sr,
 
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
-            arp_entry = sr_arpcache_lookup(&sr->cache, ip_hdr_csum->ip_dst);
+            arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
