@@ -30,6 +30,7 @@
 #define ICMP_IP_HDR_LEN 5
 #define ICMP_ECHO_REPLY_LEN 56
 #define ICMP_TYPE3_LEN 36
+#define ICMP_COPY_DATAGRAM_LEN 8
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -407,12 +408,18 @@ void ip_handlepacket(struct sr_instance *sr,
 
           	/* Modify the ICMP error packet */
           	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
-            total_len = ip_len(ip_hdr);
+            icmp_len = ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN + 
+              sizeof(struct sr_icmp_hdr);
+            total_len = ip_hdr->ip_hl * 4 + icmp_len;
             cache_packet = malloc(total_len);
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+            /* Copy the ICMP error packet over */
             memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
-              sizeof(sr_icmp_t3_hdr_t));
+                sizeof(struct sr_icmp_hdr));
+
+            memcpy(cache_packet + ip_hdr->ip_hl * 4 + sizeof(struct sr_icmp_hdr),
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
             
@@ -665,8 +672,7 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
 {
 
     struct sr_icmp_t3_hdr icmp_error_reply;
-
-    memcpy(&(icmp_error_reply), icmp_header(ip_hdr), sizeof(sr_icmp_t3_hdr_t));
+    
     icmp_error_reply.icmp_type = htons(type_dst_unreach);
 
     switch (code_num)
