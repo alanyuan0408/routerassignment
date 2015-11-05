@@ -334,7 +334,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
                sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
@@ -367,7 +367,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
               sizeof(sr_icmp_t3_hdr_t));
 
             /*Check if we should send immediately or wait */
@@ -410,7 +410,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
 
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
               sizeof(sr_icmp_t3_hdr_t));
             
             /*Check if we should send immediately or wait */
