@@ -332,9 +332,11 @@ void ip_handlepacket(struct sr_instance *sr,
 	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
+            icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
+
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              total_len - ip_hdr->ip_hl * 4;
+              icmp_len);
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -362,12 +364,13 @@ void ip_handlepacket(struct sr_instance *sr,
             
             /* Modify the ICMP error packet */
             icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
-
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
+            icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
+
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              total_len - ip_hdr->ip_hl*4);
+              icmp_len);
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -405,12 +408,13 @@ void ip_handlepacket(struct sr_instance *sr,
 
           	/* Modify the ICMP error packet */
           	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
-
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
+            icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
+
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              total_len - ip_hdr->ip_hl*4);
+              icmp_len);
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
@@ -451,7 +455,7 @@ void ip_handlepacket(struct sr_instance *sr,
             uint8_t *packet_rqt;
             unsigned int total_len = len + sizeof(struct sr_ethernet_hdr);
             packet_rqt = malloc(total_len);
-            memcpy(packet_rqt, &sr_ether_pkt, sizeof(sr_ether_pkt));
+            memcpy(packet_rqt, sr_ether_pkt, sizeof(sr_ether_pkt));
             memcpy(packet_rqt + sizeof(sr_ether_pkt), ip_pkt, len);
 
             /* forward the IP packet*/
