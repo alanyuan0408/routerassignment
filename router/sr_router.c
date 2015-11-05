@@ -431,7 +431,7 @@ void ip_handlepacket(struct sr_instance *sr,
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
 
             cache_packet = malloc(total_len);
-            memcpy(error_packet.data, &send_ip_hdr, 
+            memcpy(error_packet.data, packet, 
               ICMP_DATA_SIZE);
 
             memcpy(cache_packet, &(send_ip_hdr), ICMP_IP_HDR_LEN_BYTE);
