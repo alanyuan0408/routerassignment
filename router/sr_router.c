@@ -416,13 +416,13 @@ void ip_handlepacket(struct sr_instance *sr,
             send_ip_hdr.ip_src = r_interface->ip;
             dst = ip_hdr->ip_src;
 
-            struct sr_icmp_hdr error_packet;
+            struct sr_icmp_t3_hdr error_packet;
           	/* Modify the ICMP error packet */
             error_packet.icmp_type = 3;
             error_packet.icmp_code = 0;
             error_packet.icmp_sum = 0;
 
-            icmp_len = ICMP_IP_HDR_LEN_BYTE + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_t3_hdr);
+            icmp_len = sizeof(struct sr_icmp_t3_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             fprintf(stderr, "\ticmp_len: %d\n", icmp_len);
             fprintf(stderr, "\ttotal_len: %d\n", total_len);
