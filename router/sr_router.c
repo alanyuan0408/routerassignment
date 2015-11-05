@@ -468,6 +468,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     
        struct sr_ip_hdr *ip_hdr;
        struct sr_rt *lpmatch;
+       struct sr_if *s_interface;
 
       /* Host is not reachable */
       if (req->times_sent >= 5) {
@@ -665,7 +666,6 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
 
     struct sr_icmp_t3_hdr icmp_error_reply;
 
-    icmp_error_reply = icmp_header(ip_hdr);
     icmp_error_reply.icmp_type = htons(type_dst_unreach);
 
     switch (code_num)
