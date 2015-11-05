@@ -403,25 +403,34 @@ void ip_handlepacket(struct sr_instance *sr,
         
             printf("*** Destination Unreachable\n");
             /* Send ICMP net unreachable */
-          	dst = ip_hdr->ip_src;
-          	ip_hdr->ip_src = r_interface->ip;
-          	ip_hdr->ip_dst = dst;
+            struct sr_ip_hdr send_ip_hdr;
+            send_ip_hdr.ip_hl = 5;
+            send_ip_hdr.ip_v = ip_version_4;
+            send_ip_hdr.ip_tos = 0;
+            send_ip_hdr.ip_id = ip_hdr->ip_id;
+            send_ip_hdr.ip_off = htons(IP_DF);
+            send_ip_hdr.ip_ttl = 64;
+            send_ip_hdr.ip_p = ip_protocol_icmp;
+            send_ip_hdr.ip_sum = 0;
+            send_ip_hdr.ip_dst = ip_hdr->ip_src;
+            send_ip_hdr.ip_src = r_interface->ip;
+            dst = ip_hdr->ip_src;
 
             struct sr_icmp_hdr error_packet;
           	/* Modify the ICMP error packet */
-            error_packet.icmp_type = htons(type_dst_unreach);
-            error_packet.icmp_code = htons(code_net_unreach);
+            error_packet.icmp_type = 3;
+            error_packet.icmp_code = 0;
             error_packet.icmp_sum = 0;
 
             icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
-            ip_hdr->ip_len = htons(total_len);
-            ip_hdr->ip_sum = cksum(ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            send_ip_hdr->ip_len = htons(total_len);
+            send_ip_hdr->ip_sum = cksum(send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
 
             cache_packet = malloc(total_len);
-            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet, &send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
             /* Copy the ICMP error packet over */
-            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(error_packet), 
+            memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &error_packet, 
                 sizeof(struct sr_icmp_hdr));
 
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
