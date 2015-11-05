@@ -434,7 +434,7 @@ void ip_handlepacket(struct sr_instance *sr,
                 sizeof(struct sr_icmp_hdr));
 
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN) + 4;
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + 4);
 
             print_hdr_ip(cache_packet);
             
