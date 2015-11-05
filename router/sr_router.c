@@ -157,14 +157,14 @@ void arp_handlepacket(struct sr_instance *sr,
                     struct sr_ethernet_hdr sr_ether_hdr;
 
                     /* Construct the Ethernet Packet */
-                    sr_ether_pkt.ether_type = htons(ethertype_ip);
-                    memcpy(sr_ether_pkt.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
-                    memcpy(sr_ether_pkt.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
+                    sr_ether_hdr.ether_type = htons(ethertype_ip);
+                    memcpy(sr_ether_hdr.ether_shost, s_interface->addr, ETHER_ADDR_LEN);
+                    memcpy(sr_ether_hdr.ether_dhost, arp_hdr->ar_sha, ETHER_ADDR_LEN);
 
                     /* Copy the Packet into the sender buf */
                     eth_pkt_len = pkt_wait->len + sizeof(struct sr_ethernet_hdr);
                     send_packet = malloc(eth_pkt_len);
-                    memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
+                    memcpy(send_packet, &sr_ether_hdr, sizeof(struct sr_ethernet_hdr));
                     memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
                         pkt_wait->buf, pkt_wait->len);
 
