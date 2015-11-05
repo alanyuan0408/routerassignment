@@ -422,7 +422,7 @@ void ip_handlepacket(struct sr_instance *sr,
             error_packet.icmp_code = 0;
             error_packet.icmp_sum = 0;
 
-            icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr) + 4;
+            icmp_len = ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + sizeof(struct sr_icmp_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             send_ip_hdr.ip_len = htons(total_len);
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
@@ -434,13 +434,17 @@ void ip_handlepacket(struct sr_instance *sr,
                 sizeof(struct sr_icmp_hdr));
 
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN + 4);
+                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl*4 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
+
+            struct sr_icmp_hdr *icmp_hdr_ptr;
+            icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *))cache_packet;
+            icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
