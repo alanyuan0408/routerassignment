@@ -665,9 +665,8 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
 {
 
     struct sr_icmp_t3_hdr icmp_error_reply;
-    struct sr_icmp_hdr *icmp_header = icmp_header(ip_hdr);
 
-    memcpy(&(icmp_error_reply), icmp_header, sizeof(sr_icmp_t3_hdr_t));
+    memcpy(&(icmp_error_reply), icmp_header(ip_hdr), sizeof(sr_icmp_t3_hdr_t));
     icmp_error_reply.icmp_type = htons(type_dst_unreach);
 
     switch (code_num)
