@@ -682,7 +682,7 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
     icmp_error_reply.next_mtu = htons(MTU);
     icmp_error_reply.icmp_sum = 0;
     icmp_error_reply.unused = 0;
-    icmp_error_reply.icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
+    icmp_error_reply.icmp_sum = cksum(&(icmp_error_reply), ICMP_TYPE3_LEN);
 
     return icmp_error_reply;
 }
