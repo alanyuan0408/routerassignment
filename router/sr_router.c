@@ -195,7 +195,6 @@ void sr_add_ethernet_send(struct sr_instance *sr,
     struct sr_arpentry *arp_entry;
 
     rt = longest_prefix_matching(sr, dip);
-    sr_print_routing_entry(rt);
     r_iface = sr_get_interface(sr, rt->interface);
 
     if (type == ethertype_arp){ 
@@ -222,6 +221,25 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
         free(send_packet);
 
+    } else {
+        struct sr_arpentry *arp_entry;
+        arp_entry = sr_arpcache_lookup(&sr->cache, dip);
+
+        /* Set the Ethernet Header */
+        memcpy(sr_ether_pkt.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+        memcpy(sr_ether_pkt.ether_shost, r_iface->addr, ETHER_ADDR_LEN);
+        sr_ether_pkt.ether_type = htons(type);
+
+        /* Copy the Packet into the sender buf */
+        eth_pkt_len = len + sizeof(struct sr_ethernet_hdr);
+        send_packet = malloc(eth_pkt_len);
+        memcpy(send_packet, &sr_ether_pkt, sizeof(struct sr_ethernet_hdr));
+        memcpy(send_packet + sizeof(struct sr_ethernet_hdr), 
+            packet, sizeof(struct sr_arp_hdr));
+
+        /* send the reply*/
+        sr_send_packet(sr, send_packet, eth_pkt_len, r_iface->name);
+        free(send_packet);
     }
 
 }
@@ -291,7 +309,17 @@ void ip_handlepacket(struct sr_instance *sr,
             struct sr_ip_hdr *ip_hdr_csum = (struct sr_ip_hdr *)cache_packet;
             ip_hdr_csum->ip_sum = cksum(ip_hdr_csum, sizeof(sr_ip_hdr_t));
 
-            req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
+            /*Check if we should send immediately or wait */
+            struct sr_arpentry *arp_entry;
+            arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
+
+            if (arp_entry != 0){
+                /* Entry Exists, we can send it out right now */
+                sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip) 
+
+            } else {
+                req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, total_len, interface);
+            }
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
