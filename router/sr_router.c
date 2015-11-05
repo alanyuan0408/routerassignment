@@ -427,6 +427,7 @@ void ip_handlepacket(struct sr_instance *sr,
                 (struct sr_ip_hdr *)packet, ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
+            print_hdr_icmp(&(error_packet));
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
