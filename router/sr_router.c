@@ -222,7 +222,6 @@ void sr_add_ethernet_send(struct sr_instance *sr,
         free(send_packet);
 
     } else {
-        struct sr_arpentry *arp_entry;
         arp_entry = sr_arpcache_lookup(&sr->cache, dip);
 
         /* Set the Ethernet Header */
@@ -335,7 +334,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              sizeof(sr_icmp_t3_hdr_t));
+              total_len - ip_hdr->ip_hl * 4;
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -368,7 +367,7 @@ void ip_handlepacket(struct sr_instance *sr,
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
-              sizeof(sr_icmp_t3_hdr_t));
+              total_len - ip_hdr->ip_hl*4);
 
             /*Check if we should send immediately or wait */
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
@@ -407,10 +406,11 @@ void ip_handlepacket(struct sr_instance *sr,
           	/* Modify the ICMP error packet */
           	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
 
-          	total_len = ip_len(ip_hdr);
-          	cache_packet = malloc(total_len);
-          	memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-          	memcpy(cache_packet, icmp_error_packet, sizeof(sr_icmp_t3_hdr_t));
+            total_len = ip_len(ip_hdr);
+            cache_packet = malloc(total_len);
+            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+              total_len - ip_hdr->ip_hl*4);
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
