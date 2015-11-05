@@ -413,6 +413,8 @@ void ip_handlepacket(struct sr_instance *sr,
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
             memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
               sizeof(sr_icmp_t3_hdr_t));
+
+            print_hdr_ip(cache_packet);
             
             /*Check if we should send immediately or wait */
             struct sr_arpentry *arp_entry;
