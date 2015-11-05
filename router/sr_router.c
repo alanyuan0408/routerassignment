@@ -408,18 +408,18 @@ void ip_handlepacket(struct sr_instance *sr,
 
           	/* Modify the ICMP error packet */
           	icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
-            icmp_len = ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN + 
+            icmp_len = 20 + ICMP_COPY_DATAGRAM_LEN + 
               sizeof(struct sr_icmp_hdr);
-            total_len = ip_hdr->ip_hl * 4 + icmp_len;
+            total_len = 20 + icmp_len;
             cache_packet = malloc(total_len);
 
-            memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
+            memcpy(cache_packet, ip_hdr, 20);
             /* Copy the ICMP error packet over */
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, &(icmp_error_packet), 
+            memcpy(cache_packet + 20, &(icmp_error_packet), 
                 sizeof(struct sr_icmp_hdr));
 
-            memcpy(cache_packet + ip_hdr->ip_hl * 4 + sizeof(struct sr_icmp_hdr),
-                (struct sr_ip_hdr *)packet, ip_hdr->ip_hl * 4 + ICMP_COPY_DATAGRAM_LEN);
+            memcpy(cache_packet + 20 + sizeof(struct sr_icmp_hdr),
+                (struct sr_ip_hdr *)packet, 20 + ICMP_COPY_DATAGRAM_LEN);
 
             print_hdr_ip(cache_packet);
             
