@@ -273,7 +273,14 @@ void ip_handlepacket(struct sr_instance *sr,
     /* Test Broadcast */
     struct sr_ip_hdr *ip_hdr = ip_header(packet);
     struct sr_if *r_interface = sr_get_interface(sr,interface);
-
+    struct sr_arpreq *req;
+    struct sr_arpentry *arp_entry;
+    uint8_t *cache_packet;
+    uint16_t total_len;
+    uint16_t icmp_len;
+    uint32_t dst;
+    struct sr_icmp_t3_hdr icmp_error_packet;
+    
     if (!ip_validpacket(packet, len))
       return;
 
@@ -283,7 +290,6 @@ void ip_handlepacket(struct sr_instance *sr,
         /* Check whether ICMP echo request or TCP/UDP */
         if (ip_hdr->ip_p == ip_protocol_icmp){
 
-            uint32_t dst;
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
@@ -293,30 +299,24 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_hdr_ptr->icmp_sum = 0;
             icmp_hdr_ptr->icmp_type = htons(type_echo_reply);
             icmp_hdr_ptr->icmp_code = htons(code_echo_reply);
-	          uint16_t icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
+	          icmp_len = ntohs(ip_hdr->ip_len)-ip_hdr->ip_hl*4;
             /* Copy the packet over */
-            uint8_t *cache_packet;
-            uint16_t total_len;
 
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, total_len);
-            struct sr_arpreq *req;
 
             icmp_hdr_ptr = icmp_header((struct sr_ip_hdr *)cache_packet);
             icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len);
-
             struct sr_ip_hdr *ip_hdr_csum = (struct sr_ip_hdr *)cache_packet;
             ip_hdr_csum->ip_sum = cksum(ip_hdr_csum, sizeof(sr_ip_hdr_t));
 
             /*Check if we should send immediately or wait */
-            struct sr_arpentry *arp_entry;
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
                 sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
-
             } else {
                 req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, 
                   total_len, interface);
@@ -325,36 +325,25 @@ void ip_handlepacket(struct sr_instance *sr,
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
             /* Send ICMP port unreachable */
-
-	          uint32_t dst;
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
 
             /* Modify the ICMP error packet */
-	          sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
-
-            /* Copy the packet over */
-            uint8_t *cache_packet;
-            uint16_t total_len;
-
+	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, &icmp_error_packet, sizeof(struct sr_icmp_t3_hdr));
-
-            struct sr_arpreq *req;
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+              sizeof(struct sr_icmp_t3_hdr));
 
             /*Check if we should send immediately or wait */
-            struct sr_arpentry *arp_entry;
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
                 sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
-
             } else {
-
                 req = sr_arpcache_queuereq(&(sr->cache), dst, cache_packet, 
                   total_len, interface);
             }
@@ -368,35 +357,26 @@ void ip_handlepacket(struct sr_instance *sr,
         if (ip_hdr->ip_ttl == 0) {
               
             /* Send ICMP time exceeded */
-            uint32_t dst;
             dst = ip_hdr->ip_src;
             ip_hdr->ip_src = ip_hdr->ip_dst;
             ip_hdr->ip_dst = dst;
             
             /* Modify the ICMP error packet */
-            sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
-
-            /* Copy the packet over */
-            uint8_t *cache_packet;
-            uint16_t total_len;
+            icmp_error_packet = icmp_send_time_exceeded(ip_hdr, 0);
 
             total_len = ip_len(ip_hdr);
             cache_packet = malloc(total_len);
             memcpy(cache_packet, ip_hdr, ip_hdr->ip_hl * 4);
-            memcpy(cache_packet + ip_hdr->ip_hl * 4, &icmp_error_packet, sizeof(icmp_error_packet));
-
-            struct sr_arpreq *req;
+            memcpy(cache_packet + ip_hdr->ip_hl * 4, icmp_error_packet, 
+              sizeof(icmp_error_packet));
 
             /*Check if we should send immediately or wait */
-            struct sr_arpentry *arp_entry;
             arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
             if (arp_entry != 0){
                 /* Entry Exists, we can send it out right now */
                 sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
-
             } else {
-
               req = sr_arpcache_queuereq(&(sr->cache), dst, 
                 cache_packet, total_len, interface);
             }
@@ -428,7 +408,7 @@ void ip_handlepacket(struct sr_instance *sr,
       	ip_hdr->ip_dst = dst;
 
       	/* Modify the ICMP error packet */
-      	sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
+      	struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr, 0);
 
       	/* Copy the packet over */
       	uint8_t *cache_packet;
@@ -518,7 +498,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
          ip_hdr->ip_dst = dst;
 
          /* Modify the ICMP error packet */
-	       sr_icmp_t3_hdr_t *icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
+	       struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
 
          /* Copy the packet over */
          uint8_t *cache_packet;
@@ -684,59 +664,56 @@ struct sr_rt* longest_prefix_matching(struct sr_instance *sr, uint32_t IP_dest)
     return lpmatch;
 }
 
-struct sr_icmp_t3_hdr *icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
+struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_num)
 {
 
-    struct sr_icmp_t3_hdr *icmp_error_reply;
-    struct sr_icmp_t3_hdr *icmp_input;
+    struct sr_icmp_t3_hdr icmp_error_reply;
 
     icmp_error_reply = icmp_header(ip_hdr);
+    icmp_error_reply.icmp_type = htons(type_dst_unreach);
 
-    icmp_error_reply->icmp_type = htons(type_dst_unreach);
     switch (code_num)
     {
       case 0:
-        icmp_error_reply->icmp_code = htons(code_net_unreach);
+        icmp_error_reply.icmp_code = htons(code_net_unreach);
         break;
       case 1:
-        icmp_error_reply->icmp_code = htons(code_port_unreach);
+        icmp_error_reply.icmp_code = htons(code_port_unreach);
         break;
       case 3:
-        icmp_error_reply->icmp_code = htons(code_host_unreach);
+        icmp_error_reply.icmp_code = htons(code_host_unreach);
         break;
     }
     
-    icmp_error_reply->next_mtu = htons(MTU);
-    icmp_error_reply->icmp_sum = 0;
-    icmp_error_reply->unused = 0;
-
-
-    icmp_error_reply->icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
+    icmp_error_reply.next_mtu = htons(MTU);
+    icmp_error_reply.icmp_sum = 0;
+    icmp_error_reply.unused = 0;
+    icmp_error_reply.icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
 
     return icmp_error_reply;
 }
 
-struct sr_icmp_t3_hdr *icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num)
+struct sr_icmp_t3_hdr icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num)
 {
 
-    struct sr_icmp_t3_hdr *icmp_error_reply;
+    struct sr_icmp_t3_hdr icmp_error_reply;
 
     icmp_error_reply = icmp_header(ip_hdr);
 
-    icmp_error_reply->icmp_type = htons(type_time_exceeded);
+    icmp_error_reply.icmp_type = htons(type_time_exceeded);
     switch (code_num)
     {
       case 0:
-        icmp_error_reply->icmp_code = htons(code_ttl_expired);
+        icmp_error_reply.icmp_code = htons(code_ttl_expired);
         break;
     }
     
-    icmp_error_reply->next_mtu = htons(MTU);
-    icmp_error_reply->icmp_sum = 0;
-    icmp_error_reply->unused = 0;
+    icmp_error_reply.next_mtu = htons(MTU);
+    icmp_error_reply.icmp_sum = 0;
+    icmp_error_reply.unused = 0;
 
     /* Encap the received ip header and the first 8 bytes */
-    icmp_error_reply->icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
+    icmp_error_reply.icmp_sum = cksum(icmp_error_reply, ICMP_TYPE3_LEN);
 
     return icmp_error_reply;
 }
