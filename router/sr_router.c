@@ -499,8 +499,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             return;
           }
 
-          struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr,1);
-
+          struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr, 1);
 
           uint32_t dst;
           dst = ip_hdr->ip_src;
