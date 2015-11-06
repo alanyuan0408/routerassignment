@@ -509,6 +509,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           /* Copy the packet over */
           uint8_t *cache_packet;
           uint16_t total_len;
+          uint16_t icmp_len;
 
           icmp_len = sizeof(struct sr_icmp_t3_hdr);
           total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
