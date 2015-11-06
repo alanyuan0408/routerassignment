@@ -491,8 +491,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
-          printf("initiate unreachable\n");
-
           /* Send ICMP host unreachable*/
           struct sr_packet *ip_packet;
           ip_packet = req->packets;
