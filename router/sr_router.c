@@ -509,7 +509,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           ip_hdr->ip_src = ip_hdr->ip_dst;
           ip_hdr->ip_dst = dst;
   	      
-          printf("** test2\n");
           /* Copy the packet over */
           uint8_t *cache_packet;
           uint16_t total_len;
@@ -526,6 +525,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_arpreq *req;
           struct sr_arpentry *arp_entry;
 
+          fprintf(stderr, dst);
           /* Check ARP cache  */
           arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
