@@ -346,8 +346,6 @@ void ip_handlepacket(struct sr_instance *sr,
             send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
             /* Modify the ICMP error packet */
 	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
-            icmp_error_packet.icmp_type = 3;
-            icmp_error_packet.icmp_code = 3;
 
             icmp_len = sizeof(struct sr_icmp_t3_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
@@ -697,26 +695,3 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
     return icmp_error_reply;
 }
 
-struct sr_icmp_t3_hdr icmp_send_time_exceeded(struct sr_ip_hdr *ip_hdr, int code_num)
-{
-
-    struct sr_icmp_t3_hdr icmp_error_reply;
-    memcpy(icmp_error_reply.data, ip_hdr, ICMP_DATA_SIZE);
-
-    icmp_error_reply.icmp_type = htons(type_time_exceeded);
-    switch (code_num)
-    {
-      case 0:
-        icmp_error_reply.icmp_code = htons(code_ttl_expired);
-        break;
-    }
-    
-    icmp_error_reply.next_mtu = htons(MTU);
-    icmp_error_reply.icmp_sum = 0;
-    icmp_error_reply.unused = 0;
-
-    /* Encap the received ip header and the first 8 bytes */
-    icmp_error_reply.icmp_sum = cksum(&(icmp_error_reply), ICMP_TYPE3_LEN);
-
-    return icmp_error_reply;
-}
