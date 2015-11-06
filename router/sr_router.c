@@ -540,7 +540,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
               req = sr_arpcache_queuereq(&(sr->cache), dst, 
                     cache_packet, total_len, r_interface->name);
           }  
-          sr_arpreq_destroy(&sr->cache, req);
 
       } else {
           arp_boardcast(sr, req);
