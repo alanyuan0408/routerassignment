@@ -541,7 +541,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
               sr_add_ethernet_send(sr, cache_packet, total_len, dst, ethertype_ip);
           } else {
               req = sr_arpcache_queuereq(&(sr->cache), dst, 
-                    cache_packet, total_len, lpmatch->interface);
+                    cache_packet, total_len, r_interface->ip);
           }  
           sr_arpreq_destroy(&sr->cache, req);
 
