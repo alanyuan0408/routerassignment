@@ -525,7 +525,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_arpreq *req;
           struct sr_arpentry *arp_entry;
 
-          fprintf(stderr, dst);
+          fprintf(stderr, "%d\n", dst);
           /* Check ARP cache  */
           arp_entry = sr_arpcache_lookup(&sr->cache, dst);
 
