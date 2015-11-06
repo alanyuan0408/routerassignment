@@ -491,8 +491,12 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
       /* Host is not reachable */
       if (req->times_sent >= 5) {
 
+          printf("initiate unreachable\n");
+
           /* Send ICMP host unreachable*/
-          ip_hdr = ip_header(req->packets->buf);
+          struct sr_packet *ip_packet;
+          ip_packet = req->packets;
+          ip_hdr = ip_header(ip_packet->buf);
           lpmatch = longest_prefix_matching(sr, ip_hdr->ip_src);
 
           if(lpmatch != 0){
@@ -515,7 +519,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
           cache_packet = malloc(total_len);
 
-          memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+          memcpy(cache_packet, packet, ICMP_IP_HDR_LEN_BYTE);
           memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
               sizeof(struct sr_icmp_t3_hdr));
 
