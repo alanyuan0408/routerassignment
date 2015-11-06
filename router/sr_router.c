@@ -325,20 +325,34 @@ void ip_handlepacket(struct sr_instance *sr,
 
         } else if(ip_hdr->ip_p == ip_protocol_tcp||ip_hdr->ip_p == ip_protocol_udp){
 
-            /* Send ICMP port unreachable */
+            /* Send ICMP net unreachable */
+            struct sr_ip_hdr send_ip_hdr;
+            send_ip_hdr.ip_hl = 5;
+            send_ip_hdr.ip_v = ip_hdr->ip_v;
+            send_ip_hdr.ip_tos = 0;
+            send_ip_hdr.ip_id = ip_hdr->ip_id;
+            send_ip_hdr.ip_off = htons(IP_DF);
+            send_ip_hdr.ip_ttl = 64;
+            send_ip_hdr.ip_p = ip_protocol_icmp;
+            send_ip_hdr.ip_sum = 0;
+            send_ip_hdr.ip_dst = ip_hdr->ip_src;
+            send_ip_hdr.ip_src = r_interface->ip;
             dst = ip_hdr->ip_src;
-            ip_hdr->ip_src = ip_hdr->ip_dst;
-            ip_hdr->ip_dst = dst;
 
+            icmp_len = sizeof(struct sr_icmp_t3_hdr);
+            total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
+
+            send_ip_hdr.ip_len = htons(total_len);
+            send_ip_hdr.ip_sum = cksum(&send_ip_hdr, ICMP_IP_HDR_LEN_BYTE);
             /* Modify the ICMP error packet */
 	          icmp_error_packet = icmp_send_error_packet(ip_hdr, 3);
 
             icmp_len = sizeof(struct sr_icmp_t3_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             cache_packet = malloc(total_len);
-            memcpy(cache_packet->data, ip_hdr, ICMP_DATA_SIZE);
+            memcpy(icmp_error_packet->data, ip_hdr, ICMP_DATA_SIZE);
 
-            memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+            memcpy(cache_packet, &(send_ip_hdr), ICMP_IP_HDR_LEN_BYTE);
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
                sizeof(sr_icmp_t3_hdr_t));
 
