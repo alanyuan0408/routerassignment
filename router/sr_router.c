@@ -526,8 +526,6 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
               sizeof(struct sr_icmp_t3_hdr));
 
-          print_hdr_ip(cache_packet);
-
           struct sr_arpreq *req;
           struct sr_arpentry *arp_entry;
 
