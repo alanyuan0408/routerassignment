@@ -494,7 +494,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           ip_packet = req->packets;
 
           print_hdr_ip(ip_packet->buf);
-          struct sr_ip_hdr *ip_hdr = ip_header(ip_packet->buf);
+          sr_ip_hdr_t *ip_hdr = (sr_ip_hdr_t *)(ip_packet->buf);
           struct sr_if *r_interface = sr_get_interface(sr, ip_packet->iface);
 
           uint32_t dst;
