@@ -516,7 +516,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           send_ip_hdr.ip_p = ip_protocol_icmp;
           send_ip_hdr.ip_sum = 0;
           send_ip_hdr.ip_dst = ip_hdr->ip_src;
-          send_ip_hdr.ip_src = r_interface->ip;
+          send_ip_hdr.ip_src = ip_hdr->ip_dst;
           dst = ip_hdr->ip_src;
   	      
           /* Copy the packet over */
