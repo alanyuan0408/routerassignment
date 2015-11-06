@@ -484,8 +484,6 @@ void ip_handlepacket(struct sr_instance *sr,
 void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req) 
 {
     if (difftime(time(0), req->sent) > 1.0) {
-    
-       struct sr_rt *lpmatch;
 
       /* Host is not reachable */
       if (req->times_sent >= 5) {
@@ -494,7 +492,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           /* Send ICMP host unreachable*/
           struct sr_packet *ip_packet;
           ip_packet = req->packets;
-          
+
           print_hdr_ip(ip_packet->buf);
           struct sr_ip_hdr *ip_hdr = ip_header(ip_packet->buf);
           struct sr_if *r_interface = sr_get_interface(sr, ip_packet->iface);
