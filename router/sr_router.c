@@ -350,7 +350,7 @@ void ip_handlepacket(struct sr_instance *sr,
             icmp_len = sizeof(struct sr_icmp_t3_hdr);
             total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
             cache_packet = malloc(total_len);
-            memcpy(icmp_error_packet->data, ip_hdr, ICMP_DATA_SIZE);
+            memcpy(icmp_error_packet.data, ip_hdr, ICMP_DATA_SIZE);
 
             memcpy(cache_packet, &(send_ip_hdr), ICMP_IP_HDR_LEN_BYTE);
             memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
