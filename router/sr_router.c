@@ -503,6 +503,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           }
 
           struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr, 1);
+          struct sr_if *r_interface = sr_get_interface(sr, ip_packet->iface);
 
           uint32_t dst;
           /* Send ICMP net unreachable */
@@ -516,7 +517,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           send_ip_hdr.ip_p = ip_protocol_icmp;
           send_ip_hdr.ip_sum = 0;
           send_ip_hdr.ip_dst = ip_hdr->ip_src;
-          send_ip_hdr.ip_src = ip_hdr->ip_dst;
+          send_ip_hdr.ip_src = r_interface->ip;
           dst = ip_hdr->ip_src;
   	      
           /* Copy the packet over */
