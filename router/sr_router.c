@@ -510,7 +510,8 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           uint8_t *cache_packet;
           uint16_t total_len;
 
-          total_len = ip_len(ip_hdr);
+          icmp_len = sizeof(struct sr_icmp_t3_hdr);
+          total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
           cache_packet = malloc(total_len);
 
           memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
