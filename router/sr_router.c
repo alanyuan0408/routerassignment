@@ -687,7 +687,7 @@ struct sr_icmp_t3_hdr icmp_send_error_packet(struct sr_ip_hdr *ip_hdr, int code_
     icmp_error_reply.icmp_type = 3;
     memcpy(icmp_error_reply.data, ip_hdr, ICMP_DATA_SIZE);
 
-    icmp_error_reply.icmp_code = code_num
+    icmp_error_reply.icmp_code = code_num;
     
     icmp_error_reply.next_mtu = htons(MTU);
     icmp_error_reply.icmp_sum = 0;
