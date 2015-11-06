@@ -505,9 +505,19 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           struct sr_icmp_t3_hdr icmp_error_packet = icmp_send_error_packet(ip_hdr, 1);
 
           uint32_t dst;
+          /* Send ICMP net unreachable */
+          struct sr_ip_hdr send_ip_hdr;
+          send_ip_hdr.ip_hl = 5;
+          send_ip_hdr.ip_v = ip_hdr->ip_v;
+          send_ip_hdr.ip_tos = 0;
+          send_ip_hdr.ip_id = ip_hdr->ip_id;
+          send_ip_hdr.ip_off = htons(IP_DF);
+          send_ip_hdr.ip_ttl = 64;
+          send_ip_hdr.ip_p = ip_protocol_icmp;
+          send_ip_hdr.ip_sum = 0;
+          send_ip_hdr.ip_dst = ip_hdr->ip_src;
+          send_ip_hdr.ip_src = r_interface->ip;
           dst = ip_hdr->ip_src;
-          ip_hdr->ip_src = ip_hdr->ip_dst;
-          ip_hdr->ip_dst = dst;
   	      
           /* Copy the packet over */
           uint8_t *cache_packet;
@@ -518,7 +528,7 @@ void sr_handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
           total_len = ICMP_IP_HDR_LEN_BYTE + icmp_len;
           cache_packet = malloc(total_len);
 
-          memcpy(cache_packet, ip_hdr, ICMP_IP_HDR_LEN_BYTE);
+          memcpy(cache_packet, &(send_ip_hdr), ICMP_IP_HDR_LEN_BYTE);
           memcpy(cache_packet + ICMP_IP_HDR_LEN_BYTE, &(icmp_error_packet), 
               sizeof(struct sr_icmp_t3_hdr));
 
